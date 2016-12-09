@@ -3,11 +3,11 @@ My own neural network implementation in Python. My goal is to implement a standa
 What has been accomplished so far:
  - Implemented a perceptron and trained it to do linear classification
  - Fully capable multilayer perceptron with support for up to four hidden layers
- - Working reinforcement learning algorithm.
+ - Working reinforcement (evolutionary) learning algorithm.
  - In evolutionary scheme, was able to train forementioned MLP to do nonlinear classification. Successes have included:
  	- Classifying random points above or below degree 2 polynomials
 	- Classifying random points inside or outside piecewise function that defines a circle
-	In these cases, the evolutionary algorithm produced an error lower than 0.01.
+	In these cases, error was lower than 0.01.
 	
 About the versions:
 
