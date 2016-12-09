@@ -1,0 +1,44 @@
+My own neural network implementation in Python.
+
+Perceptron-1.1 to 1.6 deals with perceptrons only. From Perception-1.7 and onward, we may initialize a neural network by calling:
+
+n = NeuralNetwork(3,8,7,2,1)
+
+The first parameter is the input layer. The next two parameters are the hidden layers. The fourth is the output. To add a bias, we use the fifth parameter.
+
+To feedforward a neuron, we call its feedForward() method with an array of weights and inputs as parameters, respectively.
+To feedforward an entire network, we call the feedForward() method with inputs and a neural network object as parameters.
+
+Perception-2.0 and subsequent versions are rewrites that are going address several problems.
+
+ - Instead of being hacked together for personal use only, I will be emphasizing neatness and reproducibility. Functions will have clear documentation and can be reused.
+ - For matrix multiplication, I have switched to the numpy library for faster calculations. The problem of ambiguous input layers has been temporarily resolved. Users now have the choice of how many they want to add.
+ - Types will be standardized. Everything a neural network gets as input or generates as output will be an array.
+
+Now, initializing a neural network is simpler. For instance, to implement a two-hidden layer network, simply type:
+
+n = NeuralNetwork(3,8,7,None,None,1)
+
+feedForward() takes the same parameters, but a layer set to 'None' will force feedForward() to pass over that layer.
+
+Also, feedForward() is now a method of the neural network class. Now, call n.feedForward() and just pass the input array as a parameter.
+
+Up-and-coming additions for 2.0:
+ - Backpropagation.
+ - A better evolutionary algorithm.
+ - Finished tic-tac-toe demo. Play TTT against a trained MLP.
+ - A second demo for backpropagation. Possibly something like a logic table.
+
+3.0 and beyond:
+ - Support for neural network variants:
+	- Recurrent
+	- Convolutional
+ - More learning algorithms:
+	- Self-organized learning
+	- Adaptive resonance theory
+	- STDP and Hebbian learning
+ - GUI support.
+ - Modularity. Initialize multiple neural networks and connect them together.
+ - I/O support. Get input from an Arduino microcontroller or camera. Send output to an Arduino microcontroller.
+ - Addition of a computer vision library such as OpenCV
+ - Addition of a neural network library such as Keras
