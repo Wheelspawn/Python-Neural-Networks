@@ -42,6 +42,8 @@ Up-and-coming additions for 2.0:
  - Support for neural network variants:
 	- Recurrent
 	- Convolutional
+	- Spiking
+	- Hopfield
  - More learning algorithms:
 	- Self-organized learning
 	- Adaptive resonance theory
