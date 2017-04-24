@@ -107,18 +107,22 @@ class NN(object):
         '''
         
         # no hidden layer
+        
+        print("Input len: ", len(inputs))
+        print("Inputs: ", inputs)
+        
         for i in range(len(inputs)): # for each input
             out = self.feedForward(inputs[i],True) # calculate the output
             for j in range(self.l[len(self.l)-1]): # for every output node
                 for k in range(self.l[len(self.l)-2]+1): # for every node in the hidden layer
-                    d = deltaError(out[len(out)-1][j], target[i][j]) # calculate error
                     print("weight getting changed: ", self.w[len(self.w)-2][k][j])
                     print("out: ", out[len(out)-1][j])
                     print("target: ", target[i][j])
-                    print("delta: ", d)
                     print("every output: ", out)
                     print("index:", k)
                     print("hidden output? ", out[-2][k])
+                    d = deltaError(out[len(out)-1][j], target[i][j]) # calculate error
+                    print("delta: ", d)
                     print("change: ", 0.03 * out[-2][k] * d)
                     print("")
                     self.w[len(self.w)-2][k] += 0.03 * out[-2][k] * d # learning constant times hidden layer output * error
@@ -130,8 +134,8 @@ class NN(object):
                     print(d[i])
         print("Total error: ", totalError)
         '''
-    
-             
+        
+        
 def deltaError(o_b, t_b):
     error = -o_b*(1 - o_b)*(t_b - o_b)
     # print("Error: ", error)
@@ -169,6 +173,7 @@ def mutate(n):
         for j in range(len(l[i])):
             for k in range(len(l[i][j])):
                 l[i][j][k] += random.choice([0,0,random.gauss(0,0.5)])
+                
 #
 # activation functions
 #
@@ -176,7 +181,7 @@ def mutate(n):
 def helloThere():
     print("Hello there")
 
-def generateData(n): # generates input/output pairs
+def generateData(n): # generates input/output pairs for [2,1] perceptron
     vals = []
     while len(vals) < n:
         x = round(random.random(),3)
@@ -306,15 +311,15 @@ def sigmoidDeriv(finalSum):
 
 def demo1(): # or table demonstration
     print("Perceptron that does nonlinear classification. Requires matplotlib.")
-    o=NN([2,1],a='sigmoid',bias=1)
+    o=NN([2,1],act='sigmoid',bias=1)
     print("Weights: ", o.getWeights())
     print("")
     # o.setWeights([np.array([[10],[10]]), np.array([0])])
     z=generateData(400000)
     print("Training...")
     for i in range(0,len(z[0])):
-        o.bp([[z[0][i],z[1][i]]],([[1]]))
-        o.bp([[z[2][i],z[3][i]]],([[0]]))
+        o.bp([ [z[0][i], z[1][i] ] ],([[1]]))
+        o.bp([ [z[2][i], z[3][i] ] ],([[0]]))
     print("Weights: ", o.getWeights())
     print("")
     print("In: [0.1][0.1]. Out: ", o.feedForward([0.1,0.1]))
@@ -372,6 +377,8 @@ def demo3():
     
 # print("Type demo1() for a graphical table with linear classification (requires matplotlib)")
 # print("Type demo2() for a non-graphical demo with or tables")
+    
+'''
 
 n=NN([2,2])
 print(n.getWeights())
@@ -387,3 +394,4 @@ for xiojaqu in range(2):
 print(n.getWeights())
 print(n.feedForward([0,1]))
 print(n.feedForward([1,0]))
+'''
