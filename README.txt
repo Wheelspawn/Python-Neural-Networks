@@ -14,11 +14,21 @@ About the current version:
 
 Initialize a neural network by calling:
 
-n = NeuralNetwork([3,8,7,2,1])
+n = NeuralNetwork([3,8,7,2,1],act='sigmoid', bias=1)
 
-The 0th value is the input, the 1st value is the first hidden layer, etc.
+The 0th value is the input, the 1st value is the 1st hidden layer, etc.
 
-To feedforward a network, we call its feedForward() method with inputs as parameters. if brk=True, the activation through every layer will be captured, not just the output. This is very useful when you want all the activations for backpropagation.
+act is the activation function. Choices include:
+ - 'step' (stepwise function)
+ - 'rect' (rectilinear function)
+ - 'softplus' (smooth approx. to rectilinear)
+ - 'tanh' (hyperbolic function)
+ - 'sigmoidSimple' (piecewise approximation of sigmoid for small gains in efficiency)
+ - 'sigmoid' (default sigmoidal function).
+ 
+bias is the input clamp on the bias nodes. Set it to 0 and the bias nodes will not activate.
+
+To feedforward a network, we call its feedForward() method with inputs as parameters. if brk=True, the activation through every layer will be captured, not just the output. This is very useful if you want to record all the activations for backpropagation.
 
 Want a single perceptron? Just intialize:
 
@@ -26,22 +36,28 @@ n = NeuralNetwork(3,1)
 
 This will create a perceptron with three inputs.
 
-Up-and-coming additions for 3.0:
- - A better, easier to use evolutionary algorithm.
+Backpropagation takes an array of input vectors and an array of target value vectors. So, if you want to train a perceptron on the XOR table, you set up the data up like this:
+
+n.bp( [[0,1],[1,0],[1,1],[0,0]] , [[1],[1],[0],[0]] )
+
+Up-and-coming additions:
+ - A better, easier to use evolutionary algorithm. Better parameter control. Evolutionary algorithms need a crazy amount of fine tuning.
  - Finished tic-tac-toe demo. Users will be able to play TTT against a trained MLP.
- - A very simple GUI to demonstrate TTT for non-programmers and people who don't want to use the console.
+ - A simple GUI to demonstrate TTT for non-programmers and people who don't want to use the console. There will be a neural network graphic with a heatmap to display activations.
  - A demo for backpropagation. Possibly something like a logic table.
 
-3.0 and beyond:
+Additions for the far future:
  - Support for neural network variants:
 	- Recurrent
 	- Convolutional
+	- Self-organizing map, winner-takes-all
 	- Spiking
-	- Hopfield
+	- Hopfield, Kohonen, etc
+	- Deep
  - More learning algorithms:
 	- Self-organized learning
 	- Adaptive resonance theory
-	- STDP and Hebbian learning
+	- STDP, BCM and Hebbian learning
  - GUI support.
  - Modularity. Initialize multiple neural networks and connect them together.
  - I/O support. Get input from an Arduino microcontroller or camera. Send output to an Arduino microcontroller.
