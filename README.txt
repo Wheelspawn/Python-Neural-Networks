@@ -50,10 +50,10 @@ Additions for the far future:
  - Support for neural network variants:
 	- Recurrent
 	- Convolutional
-	- Self-organizing map, winner-takes-all
+	- Self-organizing map
+	- Winner-takes-all
 	- Spiking
-	- Hopfield, Kohonen, etc
-	- Deep
+	- Hopfield
  - More learning algorithms:
 	- Self-organized learning
 	- Adaptive resonance theory
