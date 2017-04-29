@@ -1,4 +1,5 @@
 import random
+import Perceptron as percept
 
 class Board():
 
@@ -73,23 +74,40 @@ class HumanPlayer():
                 self.move(g)
         else:
             g.winner=0
-            
 
-class NeuralNetPlayer():
-    def __init__(self, side=None,n):
+class PerfectPlayer():
+    def __init__(self, side=None):
         self.side=side
-        self.n=n
 
     def move(self,g):
+        print("n/a")
+
+class NeuralNetPlayer():
+    def __init__(self, side=None, n=None):
+        self.side=side
+        self.n=n
+        
+    def move(self,g):
         v=[]
-
-        for i in range(len(g.board())): # convert the matrix into a vector
-            for j in range(len(g.board())):
-		v.append(m[i][j])
-
-        result=n.feedforward(v) # example: [0.0,0.0,0.1,0.2,0.9,0.0,0.1,0.0,0.1]
+        
         
 
+        for i in range(len(g.board)): # convert the matrix into a vector
+            for j in range(len(g.board[i])):
+                v.append(g.board[i][j])
+
+        result = self.n.feedForward(v)
+        result = list(result)
+        result = [ float('%.3f' % elem) for elem in result ]
+        print(result)
+
+        while True:
+            s = g.add(self.side, result.index(max(result))+1) # try the max value--if it is taken, take the next best one
+            if s == False:
+                result[result.index(max(result))] = 0.0
+            else:
+                break
+        
 class RandomPlayer():
     def __init__(self, side=None):
         self.side=side
@@ -99,7 +117,6 @@ class RandomPlayer():
         if (s == False):
             self.move(g)
         
-
 def PlayGame(p1,p2,g):
     while True:
         if (g.winner == None):
@@ -114,7 +131,8 @@ def PlayGame(p1,p2,g):
             break
 
 def Test():
-    r1=HumanPlayer(1)
-    r2=RandomPlayer(-1)
+    n = percept.NN([9,10,10,10,10,9])
+    h=HumanPlayer(1)
+    n=NeuralNetPlayer(-1,n)
     g=Board()
-    PlayGame(r1,r2,g)
+    PlayGame(n,h,g)
