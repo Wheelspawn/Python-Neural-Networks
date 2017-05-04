@@ -1,5 +1,6 @@
 import random
 import Perceptron as percept
+import _tkinter as tk
 
 class Board():
 
@@ -135,4 +136,5 @@ def Test():
     h=HumanPlayer(1)
     n=NeuralNetPlayer(-1,n)
     g=Board()
-    PlayGame(n,h,g)
+    g.display()
+    PlayGame(h,n,g)

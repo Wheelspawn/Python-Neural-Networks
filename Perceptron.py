@@ -16,10 +16,11 @@ step = 0
 
 class NN(object):
     
-    def __init__(self, l=[2,3,1], act='sigmoid', bias=1): # l[0] is the input layer. L[1] through L[n-1] are hidden layers. L[n] is the output layer. Arbitrarily deep ANNs can now be initialized.
-        self.act = act # activation function options: 'sigmoid', 'step', 'rect', 'softplus', 'tanh'
+    def __init__(self, l=[2,3,1], act='sigmoid', c=0.03, bias=1): # l[0] is the input layer. L[1] through L[n-1] are hidden layers. L[n] is the output layer. Arbitrarily deep ANNs can now be initialized.
+        self.act = act # activation function
         self.bias = bias # bias node input. To turn bias nodes off, set to 0.
-        self.l = l
+        self.l = l # number of neurons in each layer
+        self.c = c # learning constant
         self.initWeights()
         
     def initWeights(self):
@@ -36,109 +37,114 @@ class NN(object):
     def setWeights(self,new):
         for i in range(len(new)):
             if len(new[i]) != self.l[i]: # if the new weight setup is different 
-                print("Warning! Network configuration is different than original specification. Continuing regardless")
+                print("Warning! Network configuration is different than original specification. Continuing regardless...")
+                self.l[i] = len(new[i])
                 # self.l[i] = len(new[i]) # for making sure l is consistent with new weights
         self.w = new
         
+    def feedForward(self, inputs, brk=False): # the brk argument returns all the activations
+    
+        inputs.append(self.bias) # bias in the input layer
+        allVals = [inputs] 
         
-    def feedForward(self, inputs, brk=False): # the brk argument returns the feedforward at every layer
-        inputs.append(1.0)
-        allVals = [inputs]
-        # print(allVals)
-        # print(self.w[0])
         try:
-            # print("In: ", inputs+[1])
-            # print("W: ", self.w[0])
-            a = np.dot(inputs,self.w[0])
-            for i in range(len(a)):
-                if self.act == 'step':
-                    a[i] = step(a[i])
-                elif self.act == 'rect':
-                    a[i] = rect(a[i])
-                elif self.act == 'softplus':
-                    a[i] = softplus(a[i])
-                elif self.act == 'tanh':
-                    a[i] = tanh(a[i])
-                elif self.act == 'ss':
-                    a[i] = sigmoidSimple(a[i])
-                else:
-                    a[i] = sigmoid(a[i])
+            a = np.dot(inputs,self.w[0]) # activations
+            for i in range(len(a)): # for the inputs into the network
+                a[i] = eval((self.act+'({})').format(a[i])) # send each value through the specified activation function
+                
             allVals.append(a)
-            # print("Processed: ", a)
+            
+            for i in range(1,len(self.w)): # for the processing of the hidden layers
+                a = np.append(a, self.bias) # activations
+                a = np.dot(a, self.w[i]) # integration of inputs in the next layer
+                for i in range(len(a)):
+                    a[i] = eval((self.act+'({})').format(a[i])) # activations
+                allVals.append(a)
+                
+            if brk == True:
+
+                for i in range(1,len(allVals)-1):
+                    allVals[i] = np.append(allVals[i],self.bias)
+                
+                return allVals # return every activation
+            return a
+                
         except ValueError:
             print()
             print("Input dimensions are incorrect")
             return
-            
-        for i in range(1,len(self.w)):
-            a = np.append(a, self.bias)
-            a = np.dot(a, self.w[i]) # + self.w[len(self.w)-1][i]*self.bias # dot product of activations against neuron weights, with bias input
-            for i in range(len(a)): # activation functions
-                if self.act == 'step':
-                    a[i] = step(a[i])
-                elif self.act == 'rect':
-                    a[i] = rect(a[i])
-                elif self.act == 'softplus':
-                    a[i] = softplus(a[i])
-                elif self.act == 'tanh':
-                    a[i] = tanh(a[i])
-                elif self.act == 'ss':
-                    a[i] = sigmoidSimple(a[i])
-                else:
-                    a[i] = sigmoid(a[i])
-            # print("Processed: ", a)
-            allVals.append(a)
+        except NameError:
+            print()
+            print("Activation function not recognized")
+            return
         
-        if brk == True:
-            # print("allVals: ", allVals)
-            return allVals
-        return a
-        
-    def bp(self,inputs,target): # inp is an array or arrays of values. target is the matching intended output. If you only want to do bp on a single input, you still have to use nested brackets, like [[i_1, i_2, ..., i_n]], where n is the no. of neurons in the input layer.
-        # totalError = []
+    def bp(self,inputs,target): # inp is an array or arrays of values. target is the matching intended output.
+                                # The pattern follows [ [i_1, i_2, ..., i_n] ] and [ [t_1, t_2, ..., t_n] ]
+                                # where i_1, i_2, ..., i_n and t_1, t_2, ..., t_n are input and target vectors, respectively
     
-        ''' # perceptron
+        outputError = 0
+        # perceptron
         for i in range(len(inputs)): # for each input
             out = self.feedForward(inputs[i],True) # calculate the output
-            for j in range(self.l[len(self.l)-1]): # for every output node
-                for k in range(self.l[len(self.l)-2]+1): # for every node in the hidden layer
-                    d = deltaError(out[len(out)-1][j], target[i][j]) # calculate error
-                    self.w[len(self.w)-2][k] += 0.03 * out[-2][k] * d # learning constant times hidden layer output * error
-        '''
-        
-        # no hidden layer
-        
-        print("Input len: ", len(inputs))
-        print("Inputs: ", inputs)
-        
-        for i in range(len(inputs)): # for each input
-            out = self.feedForward(inputs[i],True) # calculate the output
-            for j in range(self.l[len(self.l)-1]): # for every output node
-                for k in range(self.l[len(self.l)-2]+1): # for every node in the hidden layer
-                    print("weight getting changed: ", self.w[len(self.w)-2][k][j])
+            for j in range(self.l[-1]): # for every output node
+                for k in range(self.l[-2]+1): # for every node in the hidden layer (+1 for bias)
+                    d = deltaError(out[-1][j], target[i][j]) # calculate error
+                    
+                    '''
+                    print("weight getting changed: ", self.w[len(self.w)-1][k][j])
                     print("out: ", out[len(out)-1][j])
                     print("target: ", target[i][j])
+                    print("delta: ", d)
                     print("every output: ", out)
                     print("index:", k)
                     print("hidden output? ", out[-2][k])
-                    d = deltaError(out[len(out)-1][j], target[i][j]) # calculate error
-                    print("delta: ", d)
                     print("change: ", 0.03 * out[-2][k] * d)
                     print("")
-                    self.w[len(self.w)-2][k] += 0.03 * out[-2][k] * d # learning constant times hidden layer output * error
-                    # totalError.append(d)
-            # hidden layer(s)
-        '''
+                    '''
+                        
+                        # if the output has 1, it has to be self.w[len(self.w)-1][k]
+                        # if the output has more than 1, it has to be self.w[len(self.w)-1][k][j]
+                        
+                    if (len(self.w[len(self.w)-1]) == 1):
+                        self.w[-1][k] += self.c * out[-2][k] * d
+                        outputError += self.w[-1][k] * d
+                    else:
+                        self.w[-1][k][j] += self.c * out[-2][k] * d
+                        outputError += self.w[-1][k][j] * d
+
+                    # self.w[-1][k][j] += self.c * out[-2][k] * d # learning constant times hidden layer output * error
+
+            # print(outputError)
+            
             if len(self.l) > 2:
-                for i in range(self.l[-2]):
-                    print(d[i])
-        print("Total error: ", totalError)
-        '''
-        
-        
-def deltaError(o_b, t_b):
-    error = -o_b*(1 - o_b)*(t_b - o_b)
-    # print("Error: ", error)
+                totalError = 0
+                for i in range(len(self.w)-2,-1,-1): # for each layer
+                    print("")
+                    print("len(self.w[i][0]): ", len(self.w[i][0]))
+                    print("len(self.w[i]):    ", len(self.w[i]))
+                    for j in range(len(self.w[i][0])):
+                        l=0
+                        for k in range(len(self.w[i])):
+                            print("Weight: ", self.w[i][k][j], "   index:[{}][{}][{}]".format(i,k,j))
+                            print("Print that shit!:                  ", out[i][j], "   index:[{}][{}]".format(i,j))
+                            print("Output: ", out[i][k], "   index:[{}][{}]".format(i,k))
+                            print("Hidden error: ", hiddenError(out[i][k], outputError))
+                            totalError += hiddenError(out[i][k], outputError)
+                            self.w[i][k][j] += self.c * hiddenError(out[i][k], outputError) * out[i][k]
+                        l+=1
+                
+            '''
+            for i in range(len(self.w[-2])):
+                for j in range(len(self.w[-2][i])):
+                    self.w[-2][i][j] += 
+            '''
+             
+def deltaError(o, t): # output, target
+    error = o*(1 - o)*(t - o)
+    return error
+    
+def hiddenError(o, e):
+    error = o*(1 - o)*e
     return error
     
 def deltaInner(o_a, e):
@@ -173,7 +179,6 @@ def mutate(n):
         for j in range(len(l[i])):
             for k in range(len(l[i][j])):
                 l[i][j][k] += random.choice([0,0,random.gauss(0,0.5)])
-                
 #
 # activation functions
 #
@@ -181,17 +186,16 @@ def mutate(n):
 def helloThere():
     print("Hello there")
 
-def generateData(n): # generates input/output pairs for [2,1] perceptron
+def generateData(n): # generates input/output pairs
     vals = []
     while len(vals) < n:
         x = round(random.random(),3)
         y = round(random.random(),3)
-        # if ( ( x - 1/2 )**2 + ( y - 1/2 )**2 < 1/16 ):
-        if y >= x:  # ( ( x - 1/2 )**2 + ( y - 1/2 )**2 < 1/16 ) and len(xValsRed) < n/2:
-            # print([[x, y],[1]])
+        # if ( ( x - 1/2 )**2 + ( y - 1/2 )**2 > 1/16 ):
+        if y > -x+1:
             vals.append([[x, y],[1]]) # input, desired output
-        elif y < x: # ( ( x - 1/2 )**2 + ( y - 1/2 )**2 > 1/16 ) and len(xValsBlue) < n/2:
-            # print([[x, y],[0]])
+        # elif ( ( x - 1/2 )**2 + ( y - 1/2 )**2 <= 1/16 ):
+        elif y <= -x+1:
             vals.append([[x, y],[0]]) # input, desired output
             
     return vals
@@ -311,15 +315,15 @@ def sigmoidDeriv(finalSum):
 
 def demo1(): # or table demonstration
     print("Perceptron that does nonlinear classification. Requires matplotlib.")
-    o=NN([2,1],act='sigmoid',bias=1)
+    o=NN([2,21,1],act='sigmoid',bias=1,c=0.02)
     print("Weights: ", o.getWeights())
     print("")
     # o.setWeights([np.array([[10],[10]]), np.array([0])])
-    z=generateData(400000)
+    z=generateData(10000)
+    # dprint(z)
     print("Training...")
-    for i in range(0,len(z[0])):
-        o.bp([ [z[0][i], z[1][i] ] ],([[1]]))
-        o.bp([ [z[2][i], z[3][i] ] ],([[0]]))
+    for i in range(0,len(z)-1):
+        o.bp([z[i][0]], [z[i][1]])
     print("Weights: ", o.getWeights())
     print("")
     print("In: [0.1][0.1]. Out: ", o.feedForward([0.1,0.1]))
@@ -328,21 +332,23 @@ def demo1(): # or table demonstration
     print("In: [0.6][0.4]. Out: ", o.feedForward([0.6,0.4]))
     
     plotNetwork(o)
-    del o # end resource
     
 def demo2():
     print("Perceptron that demonstrates correct responses to OR truth table inputs.")
     o=NN([2,1],act='sigmoid',bias=1)
     print("Weights: ", o.getWeights())
     print("")
-    print("Training...")
+    print("Training",end='')
     for i in range(0,10000):
-        o.bp([[0.0,0.0]],([[0]]))
-        o.bp([[1.0,0.0]],([[1]]))
-        o.bp([[0.0,0.0]],([[0]]))
-        o.bp([[0.0,0.1]],([[1]]))
-        o.bp([[0.0,0.0]],([[0]]))
-        o.bp([[1.0,1.0]],([[1]]))
+        if i%1000==0:
+            print('.',end='')
+        o.bp([[0.0,0.0]],[[0]])
+        o.bp([[1.0,0.0]],[[1]])
+        o.bp([[0.0,0.0]],[[0]])
+        o.bp([[0.0,1.0]],[[1]])
+        o.bp([[0.0,0.0]],[[0]])
+        o.bp([[1.0,1.0]],[[1]])
+    print("")
     print("Weights: ", o.getWeights())
     print("")
     print("In: [0][0]. Out: ", o.feedForward([0.0,0.0]))
@@ -350,15 +356,15 @@ def demo2():
     print("In: [0][1]. Out: ", o.feedForward([0.0,1.0]))
     print("In: [1][1]. Out: ", o.feedForward([1.0,1.0]))
     
-    del o # end resource
     
 def demo3():
     print("Demonstrates word-property association")
+    z=generateData(15000)
     p=NN([3,5],act='sigmoid',bias=1)
     print("Weights: ", p.getWeights())
     print("")
     print("Training", end="")
-    for i in range(0,30000):
+    for i in range(0,len(z)-1):
         if i%1000==0:
             print(p.getWeights())
         #     print(".", end="")
@@ -371,27 +377,33 @@ def demo3():
     print("Objects: Banana, Apple, Blueberry")
     print("Qualities: Red, Yellow, Blue, Hard, Soft")
     
+    p.act='step'
+    
     print(p.feedForward([1.0,0.0,0.0]))
     print(p.feedForward([0.0,1.0,0.0]))
     print(p.feedForward([0.0,0.0,1.0]))
-    
+
 # print("Type demo1() for a graphical table with linear classification (requires matplotlib)")
 # print("Type demo2() for a non-graphical demo with or tables")
-    
+
+'''
+n=NN([2,1])
+m=NN([2,3,1])
+
+print("First neural network: ")
+print("Feedforward 1: ", n.feedForward([1,1]))
+print("Second neural network: ")
+print("Feedforward 2: ", m.feedForward([1,1]))
 '''
 
-n=NN([2,2])
-print(n.getWeights())
-print(n.feedForward([0,1]))
-print(n.feedForward([1,0]))
+# demo1()
 
-for xiojaqu in range(2):
-    print("")
-    print("Step ", xiojaqu)
-    n.bp([[0,1]],[[1,0]])
-    n.bp([[1,0]],[[0,1]])
-    
-print(n.getWeights())
-print(n.feedForward([0,1]))
-print(n.feedForward([1,0]))
 '''
+m=NN([2,4,3,1])
+o=m.feedForward([1,1],brk=True)
+print(o)
+print(m.w)
+m.bp([[1,1]],[[1]])
+'''
+
+# hi!
