@@ -7,126 +7,167 @@ from tkinter.ttk import *
 
 class MainWindow(Frame):
 
-    def __init__(self, parent, geometry, n=NN([2,5,8,7,4,3,3]),width=720,height=480):
+    def __init__(self, parent, geometry=None, n=NN([9,10,9,10,9,10,9,10,9]), menus=[]): # [2,5,8,7,12,4,3,3]
         Frame.__init__(self, parent)
 
         self.parent = parent
-        self.geometry=geometry
-        self.n = n
-        
-        self.width=width
-        self.height=height
+        self.geometry = geometry # geometry object hold information about the graph representatoin of the neural network, including the canvas projecting it.
+        self.n = n # the neural network model the window is currently initialized to use.
+        self.menus=menus # optionmenus that specify the number of layers and the neurons each one contains
         
         self.initUI()
-
-    def initUI(self):
-
-        print(X)
-
-        titleTop = self.parent.title("Neural networks")
         
-        '''
-        leftFrame=Frame(self)
-        leftFrame.pack(side="left", fill=Y, expand=True)
-        canvasFrame=Frame(self)
-        canvasFrame.pack(side="right",fill=X,expand=True)
-        bottomFrame=Frame(self)
-        bottomFrame.pack(side="bottom",fill=Y,expand=True)
+    def initButtons(self):
+        titleTop = self.parent.title("Artificial neural network simulator")
         
-        lbl1 = Label(leftFrame, text="")
-        lbl1.pack(side="left", fill=Y, expand=True)
-        
-        lbl2 = Label(canvasFrame, text="")
-        lbl2.pack(side="right",fill=X,expand=True)
-        
-        lbl3 = Label(bottomFrame, text="")
-        lbl3.pack(side="bottom",fill=Y,expand=True)
-        '''
-        
-        inputEntry = Entry(self.parent, text="Inputs")
+        inputEntry = Entry(self.parent) # input values
         inputEntry.grid(row=0,column=0,padx=5,pady=5)
         
-        leftButton = Button(self.parent, text="Feedforward")
+        leftButton = Button(self.parent, text="Feedforward", command=lambda: propagate(self, self.geometry.canvas, inputEntry.get())) # feedforward button
         leftButton.grid(row=1,column=0,pady=5)
         
-        load = Button(self.parent, text="Load weights")
+        load = Button(self.parent, text="Load weights") # button that loads weights from (an undecided extension) file
         load.grid(row=2,column=0,pady=5)
         
-        export = Button(self.parent, text="Export weights")
+        export = Button(self.parent, text="Export weights") # button that exports weights to (an undecided extension) file
         export.grid(row=3,column=0,pady=5)
         
-        canvas = Canvas(self.parent,width=720,height=480,relief="sunken",borderwidth=1)
-        canvas.grid(row=0,column=1,rowspan=4,columnspan=15)
-        self.setGraphics(canvas)
+        layerOptions=["","0","1","2","3","4","5","6","7","8","9","10","11","12"] # max number of neurons in a layer is 12
         
-        bottomButton = Button(self.parent, text="Reset")
-        bottomButton.grid(row=4,column=1,pady=15)
-        
-        
-        layerOptions=["","0","1","2","3","4","5","6","7","8","9","10","11","12"]
-        
-        for i in range(10):
+        for i in range(9): # here we initalize eight optionmenus and give them a callback function for updating the layer information
             var = StringVar(self)
             var.set(self.n.l[i] if i<len(self.n.l) else layerOptions[1])
-            OptionMenu(self.parent, var, *layerOptions).grid(row=4,column=2+i)
+            var.trace("w", self.reInit)
+            self.menus.append(OptionMenu(self.parent, var, *layerOptions))
+            self.menus[i].grid(row=5,column=2+i,pady=15)
+        
+        var = StringVar(self)
+        var.set("sigmoid")
+        
+        actFunction = OptionMenu(self.parent, var, "sigmoidal", "tanh", "rectilinear") # optionmenu to set the activation function
+        actFunction['menu'].config(bg="white") # this does nothing at the moment
+        actFunction.grid(row=5,column=12)
+        
+        bottomButton = Button(self.parent, text="Reinitialize", command=lambda: self.reInit) # reinitializes network based on parameters given by user (or by default)
+        bottomButton.grid(row=5,column=13,pady=15)
 
-    def setGraphics(self, canvas):
-        x = canvas.winfo_width()+int(self.width/2)
-        y = canvas.winfo_height()+int(self.height/2)
+    def initUI(self): # create the user interface
+    
+        self.initButtons() # create buttons in a separate method
         
-        margin = 40
-        radius = 15
+        self.geometry = NetworkGraphic() # this class will hold variables to represent the canvas
+                                         # and graphical objects that make up the neural network such as circles, lines and labels
+        self.geometry.canvas = Canvas(self.parent,width=self.geometry.width,height=self.geometry.height,relief="sunken",borderwidth=1) # initalize with parameters inherited from self
+        self.geometry.canvas.grid(row=0,column=1,rowspan=4,columnspan=15)
+        self.setGraphics(self.geometry.canvas,self.geometry.values,self.geometry.lines,self.geometry.labels,self.geometry.acts) # initialize graphics
+
+    def setGraphics(self, canvas, values, lines, labels, acts):
         
-        values = []
-        for i in range(len(self.n.l)):
-            values.append([])
+        x = canvas.winfo_width()+int(780/2) # (x,y) is the center of the canvas
+        y = canvas.winfo_height()+int(480/2)
         
-        layerDist = distances(self.n.l,(0 if len(self.n.l)%2==1 else 0.5))
+        margin = 40 # margin for neurons
+        radius = 15 # radius for neurons
+        
+        values = [[] for x in range(len(self.n.l[:])) ] # initialize with empty arrays that match neural network dimensions, to be filled later
+        labels = [[] for x in range(len(self.n.l[:])) ]
+        
+        layerDist = distances(self.n.l,(0 if len(self.n.l)%2==1 else 0.5)) # get the distances between layers
         
         for i in range(len(layerDist)):
-            layerDist[i] = layerDist[i]*2
-            
-        print(layerDist)
+            layerDist[i] = layerDist[i]*2 # multiply each constant by two-too many lines of code for this problem, to be fixed later
         
         for i in range(len(self.n.l)):
             networkDist=[]
             networkDist.extend(0 for k in range(0 ,self.n.l[i]))
-            networkDist=distances(networkDist,(0 if self.n.l[i]%2==1 else 0.5))
-            print(networkDist)
+            networkDist=distances(networkDist,(0 if self.n.l[i]%2==1 else 0.5)) # same thing as layerDist, but for the neurons in each layer
             for j in range(0, self.n.l[i]):
-                values[i].append(canvas.create_circle(canvas,
+                values[i].append(canvas.create_circle(canvas, # add circle objects
                                                       x+margin*layerDist[i],
-                                                      y+margin*(networkDist)[j],
+                                                      y+margin*networkDist[j],
                                                       radius,
                                                       outline="black",
-                                                      fill=(sigmoidToColor(random.random()) if i != 0 else ""),
+                                                      fill=(("light gray") if (acts == [] or i==0) else sigmoidToHex(acts[i][j])), # "light gray"
                                                       width=1))
+                labels[i].append(canvas.create_text(x+margin*layerDist[i],y+margin*networkDist[j],text="0.0" if acts == [] else round(acts[i][j],1))) # add labels for activations
         
-        print(values)
         
         for i in range(len(values)-1):
             for j in range(len(values[i])):
                 for k in range(len(values[i+1])):
                     # canvas.create_text(values[i][j].x,values[i][j].y,text="0.0")
-                    canvas.create_line(values[i][j].x+values[i][j].r,values[i][j].y,values[i+1][k].x-values[i+1][k].r,values[i+1][k].y)
+                    lines.append(canvas.create_line((values[i][j].x)+values[i][j].r,values[i][j].y,(values[i+1][k].x)-values[i+1][k].r,values[i+1][k].y))
+                    
+        labels.append([])
         
         for i in range(len(values[-1])):
-            canvas.create_line(values[-1][i].x+values[-1][i].r,values[-1][i].y,values[-1][i].x+(values[-1][i].r*2),values[-1][i].y)
-            
-        def updateGraphics(self):
-            print("Updates the activation labels and colors of the weights")
-            
-        def resetGraphics(self):
-            print("Deletes everything on the canvas and reinitializes it")
+            lines.append(canvas.create_line((values[-1][i].x)+(values[-1][i].r*2)-10,values[-1][i].y+3,(values[-1][i].x)+(values[-1][i].r*2),values[-1][i].y)) # left arrowhead.
+            lines.append(canvas.create_line((values[-1][i].x)+values[-1][i].r,values[-1][i].y,(values[-1][i].x)+(values[-1][i].r*2),values[-1][i].y))
+            lines.append(canvas.create_line((values[-1][i].x)+(values[-1][i].r*2)-10,values[-1][i].y-3,(values[-1][i].x)+(values[-1][i].r*2),values[-1][i].y)) # right arrowhead
 
-def sigmoidToColor(w): # maps numbers in range [0,1] to colors along blue-red spectrum
-    print(w)
+            labels[-1].append(canvas.create_text((values[-1][i].x)+(values[-1][i].r*2)+radius,values[-1][i].y,text="0.0" if acts == [] else round(acts[-1][i],1)))
+            
+    def updateGraphics(self):
+        self.resetGraphics()
+        self.geometry.canvas = Canvas(self.parent,width=self.geometry.width,height=self.geometry.height,relief="sunken",borderwidth=1)
+        self.geometry.canvas.grid(row=0,column=1,rowspan=4,columnspan=15)
+        self.setGraphics(self.geometry.canvas,self.geometry.values,self.geometry.lines,self.geometry.labels,self.geometry.acts)
+        print("Updates the activation labels and colors of the weights")
+            
+    def resetGraphics(self):
+        print("Deletes everything on the canvas and reinitializes it")
+        self.geometry.canvas.delete("all")
+        
+    def reInit(*args):
+        print(var)
+            
+def propagate(frame, canvas, entry):
+    entry = entry.split(",")
+    entry = list(map(int, entry))
+    frame.geometry.acts = frame.n.feedForward(entry,brk=True)
+    frame.updateGraphics()
+    
+    '''
+    for i in range(len(frame.geometry.values)):
+        for j in range(len(frame.geometry.values[i])):
+            print("Phil: ", frame.geometry.values[i][j])
+            print("Phil's old color: ", frame.geometry.values[i][j].fill)
+            canvas.itemconfig(frame.geometry.graph[i][j], fill=sigmoidToHex(f[i][j]))
+            frame.geometry.values[i][j].fill=sigmoidToHex(f[i][j])
+            print("Phil's new color: ", frame.geometry.values[i][j].fill)
+            canvas.itemconfig(frame.geometry.lines[i][j],text=str(round(f[i][j],2)))
+            '''
+            
+class NetworkGraphic(object):
+
+    def __init__(self,canvas=None,values=[],lines=[],labels=[],acts=[],width=780,height=480,margin=40,radius=15):
+        
+        self.canvas = canvas
+        self.values = values
+        self.lines = lines
+        self.labels = labels
+        self.acts = acts
+        self.width = width
+        self.height = height
+        self.margin = margin
+        self.radius = radius
+            
+            
+def sigmoidToHex(w): # maps numbers in range [0,1] to colors along blue-red spectrum
     if w > 0.5:
-        rgb=(255,int(255*(1-w)),int(255*(1-w)))
+        rgb=(255,int(255*-2*(w-1)),int(255*-2*(w-1)))
+    else:
+        rgb=(int(255*(w*2)),int(255*(w*2)),255)
+    return '#%02x%02x%02x' % rgb
+    
+    '''
+    if w > 0.5:
+        rgb=(int(255*w),int(255*(1-w)),int(255*(1-w)))
         return '#%02x%02x%02x' % rgb
     elif w <= 0.5:
-        rgb=(int(255*w),int(255*w),255)
+        rgb=(int(255*(w)),int(255*w),int(255*(1-w)))
         return '#%02x%02x%02x' % rgb
+    '''
         
 def distances(l,offset=0): # l = [ l_1, l_2, l_3, ... l_n ]
     if len(l) == 2:
@@ -138,31 +179,25 @@ def distances(l,offset=0): # l = [ l_1, l_2, l_3, ... l_n ]
         
         
 class create_circle(object):
-    def __init__(self,canvas,x,y,r,**kwargs):
+    def __init__(self,canvas,x,y,r,outline,fill,width,**kwargs): # **kwargs
         self.canvas = canvas
-        self.x=x
-        self.y=y
-        self.r=r
+        self.x = x
+        self.y = y
+        self.r = r
+        self.outline = outline
+        self.fill = fill
+        self.width = width
 
-        x1=x+r
-        y1=y+r
-        x2=x-r
-        y2=y-r
+        x1=self.x+self.r
+        y1=self.y+self.r
+        x2=self.x-self.r
+        y2=self.y-self.r
     
-        circle = Canvas.create_oval(self.canvas,x1,y1,x2,y2,**kwargs)
+        circle = Canvas.create_oval(self.canvas,x1,y1,x2,y2,outline=self.outline,fill=self.fill,width=self.width,**kwargs)
         
     def __repr__(self):
         return "circle (" + str(self.x) + "," + str(self.y) + ") with radius " + str(self.r)
 
-'''
-def create_circle(self,x,y,r,**kwargs):
-    x1=x+r
-    y1=y+r
-    x2=x-r
-    y2=y-r
-    
-    return Canvas.create_oval(self,x1,y1,x2,y2,**kwargs)
-'''
 
 Canvas.create_circle = create_circle
 
