@@ -7,7 +7,7 @@ from tkinter.ttk import *
 
 class MainWindow(Frame):
 
-    def __init__(self, parent, geometry=None, n=NN([3,7,6,1]), menus=[]):
+    def __init__(self, parent, geometry=None, n=NN([4,9,8,1]), menus=[]):
         Frame.__init__(self, parent)
 
         self.parent = parent
@@ -26,10 +26,10 @@ class MainWindow(Frame):
         leftButton = Button(self.parent, text="Feedforward", command=lambda: propagate(self, self.geometry.canvas, inputEntry.get())) # feedforward button
         leftButton.grid(row=1,column=0,pady=5)
         
-        load = Button(self.parent, text="Load weights") # button that loads weights from (an undecided extension) file
-        load.grid(row=2,column=0,pady=5)
+        load = Button(self.parent, text="Load weights from CSV") # button that loads weights from (an undecided extension) file
+        load.grid(row=2,column=0,padx=5,pady=5)
         
-        export = Button(self.parent, text="Export weights") # button that exports weights to (an undecided extension) file
+        export = Button(self.parent, text="Export weights to CSV") # button that exports weights to (an undecided extension) file
         export.grid(row=3,column=0,pady=5)
         
         layerOptions=["","0","1","2","3","4","5","6","7","8","9","10","11","12"] # max number of neurons in a layer is 12
@@ -124,11 +124,7 @@ class MainWindow(Frame):
         
         screengrab = list(filter(lambda a: a != 0, screengrab))
         
-        print("Menu values: ", screengrab)
-        
         self.n.l = screengrab
-        
-        print("Topology: ", self.n.l)
         
         self.n.initWeights()
         self.geometry.acts=[]
@@ -138,14 +134,14 @@ def propagate(frame, canvas, entry):
     from tkinter import messagebox
     try:
         entry = entry.split(",")
-        entry = list(map(int, entry))
+        entry = list(map(float, entry))
         if len(entry) == frame.n.l[0]:
             frame.geometry.acts = frame.n.feedForward(entry,brk=True)
             frame.updateGraphics()
         else:
             raise ValueError
     except ValueError:
-        messagebox.showerror("", "Input vector has the wrong size.")
+        messagebox.showerror("", "Input vector has wrong size and/or non-numerical inputs.")
             
 class NetworkGraphic(object):
 
