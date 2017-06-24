@@ -7,7 +7,7 @@ from tkinter.ttk import *
 
 class MainWindow(Frame):
 
-    def __init__(self, parent, geometry=None, n=NN([9,10,9,10,9,10,9,10,9]), menus=[]): # [2,5,8,7,12,4,3,3]
+    def __init__(self, parent, geometry=None, n=NN([3,7,6,1]), menus=[]):
         Frame.__init__(self, parent)
 
         self.parent = parent
@@ -37,9 +37,8 @@ class MainWindow(Frame):
         for i in range(9): # here we initalize eight optionmenus and give them a callback function for updating the layer information
             var = StringVar(self)
             var.set(self.n.l[i] if i<len(self.n.l) else layerOptions[1])
-            var.trace("w", self.reInit)
-            self.menus.append(OptionMenu(self.parent, var, *layerOptions))
-            self.menus[i].grid(row=5,column=2+i,pady=15)
+            OptionMenu(self.parent, var, *layerOptions).grid(row=5,column=2+i,pady=15)
+            self.menus.append(var)
         
         var = StringVar(self)
         var.set("sigmoid")
@@ -48,7 +47,7 @@ class MainWindow(Frame):
         actFunction['menu'].config(bg="white") # this does nothing at the moment
         actFunction.grid(row=5,column=12)
         
-        bottomButton = Button(self.parent, text="Reinitialize", command=lambda: self.reInit) # reinitializes network based on parameters given by user (or by default)
+        bottomButton = Button(self.parent, text="Reinitialize", command=self.reInit) # reinitializes network based on parameters given by user (or by default)
         bottomButton.grid(row=5,column=13,pady=15)
 
     def initUI(self): # create the user interface
@@ -112,31 +111,41 @@ class MainWindow(Frame):
         self.geometry.canvas = Canvas(self.parent,width=self.geometry.width,height=self.geometry.height,relief="sunken",borderwidth=1)
         self.geometry.canvas.grid(row=0,column=1,rowspan=4,columnspan=15)
         self.setGraphics(self.geometry.canvas,self.geometry.values,self.geometry.lines,self.geometry.labels,self.geometry.acts)
-        print("Updates the activation labels and colors of the weights")
             
     def resetGraphics(self):
-        print("Deletes everything on the canvas and reinitializes it")
         self.geometry.canvas.delete("all")
         
-    def reInit(*args):
-        print(var)
+    def reInit(self):
+        
+        screengrab=[]
+        
+        for var in self.menus:
+            screengrab.append(int(var.get()))
+        
+        screengrab = list(filter(lambda a: a != 0, screengrab))
+        
+        print("Menu values: ", screengrab)
+        
+        self.n.l = screengrab
+        
+        print("Topology: ", self.n.l)
+        
+        self.n.initWeights()
+        self.geometry.acts=[]
+        self.updateGraphics()
             
 def propagate(frame, canvas, entry):
-    entry = entry.split(",")
-    entry = list(map(int, entry))
-    frame.geometry.acts = frame.n.feedForward(entry,brk=True)
-    frame.updateGraphics()
-    
-    '''
-    for i in range(len(frame.geometry.values)):
-        for j in range(len(frame.geometry.values[i])):
-            print("Phil: ", frame.geometry.values[i][j])
-            print("Phil's old color: ", frame.geometry.values[i][j].fill)
-            canvas.itemconfig(frame.geometry.graph[i][j], fill=sigmoidToHex(f[i][j]))
-            frame.geometry.values[i][j].fill=sigmoidToHex(f[i][j])
-            print("Phil's new color: ", frame.geometry.values[i][j].fill)
-            canvas.itemconfig(frame.geometry.lines[i][j],text=str(round(f[i][j],2)))
-            '''
+    from tkinter import messagebox
+    try:
+        entry = entry.split(",")
+        entry = list(map(int, entry))
+        if len(entry) == frame.n.l[0]:
+            frame.geometry.acts = frame.n.feedForward(entry,brk=True)
+            frame.updateGraphics()
+        else:
+            raise ValueError
+    except ValueError:
+        messagebox.showerror("", "Input vector has the wrong size.")
             
 class NetworkGraphic(object):
 
