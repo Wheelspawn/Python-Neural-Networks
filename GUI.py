@@ -1,5 +1,6 @@
 from Perceptron import NN
 
+import math
 import random
 
 from tkinter import *
@@ -59,6 +60,8 @@ class MainWindow(Frame):
         self.geometry.canvas = Canvas(self.parent,width=self.geometry.width,height=self.geometry.height,relief="sunken",borderwidth=1) # initalize with parameters inherited from self
         self.geometry.canvas.grid(row=0,column=1,rowspan=4,columnspan=15)
         self.setGraphics(self.geometry.canvas,self.geometry.values,self.geometry.lines,self.geometry.labels,self.geometry.acts) # initialize graphics
+        
+        print(self.geometry.values)
 
     def setGraphics(self, canvas, values, lines, labels, acts):
         
@@ -70,6 +73,7 @@ class MainWindow(Frame):
         
         values = [[] for x in range(len(self.n.l[:])) ] # initialize with empty arrays that match neural network dimensions, to be filled later
         labels = [[] for x in range(len(self.n.l[:])) ]
+        lines = []
         
         layerDist = distances(self.n.l,(0 if len(self.n.l)%2==1 else 0.5)) # get the distances between layers
         
@@ -106,6 +110,26 @@ class MainWindow(Frame):
 
             labels[-1].append(canvas.create_text((values[-1][i].x)+(values[-1][i].r*2)+radius,values[-1][i].y,text="0.0" if acts == [] else round(acts[-1][i],1)))
             
+        self.geometry.values = values
+        self.geometry.labels = labels
+        self.geometry.lines = lines
+        
+        self.popup = Menu(self.parent, tearoff=0)
+        canvas.bind("<Button-3>", self.selector)
+        self.popup.add_command(label="Edit weights", command=lambda: self.printThatShit(self.geometry.values[i][j], self.n.neuronWeights(i-1,j) ))
+        
+    def selector(self, e):
+        
+        for i in range(len(self.geometry.values)):
+            for j in range(len(self.geometry.values[i])):
+                dist = math.sqrt( ( e.x-self.geometry.values[i][j].x )**2 + ( e.y-self.geometry.values[i][j].y )**2 )
+                if dist <= 15 and i != 0:
+                    self.popup.tk_popup(e.x_root,e.y_root,0)
+                    
+    def printThatShit(self,neuron,weights):
+        print(weights)
+        g=WeightWindow(Tk(),weights)
+    
     def updateGraphics(self):
         self.resetGraphics()
         self.geometry.canvas = Canvas(self.parent,width=self.geometry.width,height=self.geometry.height,relief="sunken",borderwidth=1)
@@ -113,6 +137,7 @@ class MainWindow(Frame):
         self.setGraphics(self.geometry.canvas,self.geometry.values,self.geometry.lines,self.geometry.labels,self.geometry.acts)
             
     def resetGraphics(self):
+        self.popup.destroy()
         self.geometry.canvas.delete("all")
         
     def reInit(self):
@@ -129,6 +154,20 @@ class MainWindow(Frame):
         self.n.initWeights()
         self.geometry.acts=[]
         self.updateGraphics()
+        
+class WeightWindow(Frame):
+    def __init__(self, parent, weights):
+        Frame.__init__(self, parent)
+
+        self.parent = parent
+        self.weights = weights
+        
+        self.initUI()
+        
+    def initUI(self):
+            
+        titleTop = self.parent.title("Edit weights")
+        print(self.weights)
             
 def propagate(frame, canvas, entry):
     from tkinter import messagebox
@@ -165,14 +204,6 @@ def sigmoidToHex(w): # maps numbers in range [0,1] to colors along blue-red spec
         rgb=(int(255*(w*2)),int(255*(w*2)),255)
     return '#%02x%02x%02x' % rgb
     
-    '''
-    if w > 0.5:
-        rgb=(int(255*w),int(255*(1-w)),int(255*(1-w)))
-        return '#%02x%02x%02x' % rgb
-    elif w <= 0.5:
-        rgb=(int(255*(w)),int(255*w),int(255*(1-w)))
-        return '#%02x%02x%02x' % rgb
-    '''
         
 def distances(l,offset=0): # l = [ l_1, l_2, l_3, ... l_n ]
     if len(l) == 2:
