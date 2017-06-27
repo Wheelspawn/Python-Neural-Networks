@@ -8,7 +8,7 @@ from tkinter.ttk import *
 
 class MainWindow(Frame):
 
-    def __init__(self, parent, geometry=None, n=NN([4,9,8,1]), menus=[]):
+    def __init__(self, parent, geometry=None, n=NN([2,9,8,1], act='sigmoid'), menus=[]):
         Frame.__init__(self, parent)
 
         self.parent = parent
@@ -41,11 +41,10 @@ class MainWindow(Frame):
             OptionMenu(self.parent, var, *layerOptions).grid(row=5,column=2+i,pady=15)
             self.menus.append(var)
         
-        var = StringVar(self)
-        var.set("sigmoid")
+        var2 = StringVar(self)
+        var2.set("sigmoid")
         
-        actFunction = OptionMenu(self.parent, var, "sigmoidal", "tanh", "rectilinear") # optionmenu to set the activation function
-        actFunction['menu'].config(bg="white") # this does nothing at the moment
+        actFunction = OptionMenu(self.parent, var2, "", "sigmoid", "tanh", "step", command=lambda: self.chooseActFunction) # optionmenu to set the activation function
         actFunction.grid(row=5,column=12)
         
         bottomButton = Button(self.parent, text="Reinitialize", command=self.reInit) # reinitializes network based on parameters given by user (or by default)
@@ -90,7 +89,7 @@ class MainWindow(Frame):
                                                       y+margin*networkDist[j],
                                                       radius,
                                                       outline="black",
-                                                      fill=(("light gray") if (acts == [] or i==0) else sigmoidToHex(acts[i][j])), # "light gray"
+                                                      fill=(("light gray") if (acts == [] or i==0) else hexConverter(acts[i][j], self.n.act)), # "light gray"
                                                       width=1))
                 labels[i].append(canvas.create_text(x+margin*layerDist[i],y+margin*networkDist[j],text="0.0" if acts == [] else round(acts[i][j],1))) # add labels for activations
         
@@ -116,7 +115,6 @@ class MainWindow(Frame):
         
         self.popup = Menu(self.parent, tearoff=0)
         canvas.bind("<Button-3>", self.selector)
-        self.popup.add_command(label="Edit weights", command=lambda: self.printThatShit(self.geometry.values[i][j], self.n.neuronWeights(i-1,j) ))
         
     def selector(self, e):
         
@@ -125,10 +123,11 @@ class MainWindow(Frame):
                 dist = math.sqrt( ( e.x-self.geometry.values[i][j].x )**2 + ( e.y-self.geometry.values[i][j].y )**2 )
                 if dist <= 15 and i != 0:
                     self.popup.tk_popup(e.x_root,e.y_root,0)
+                    self.popup.add_command(label="Edit weights", command=self.initWeightWindow(Tk(), self.n.neuronWeights(i-1,j)))
+                    break
                     
-    def printThatShit(self,neuron,weights):
-        print(weights)
-        g=WeightWindow(Tk(),weights)
+    def initWeightWindow(self,parent,neuron):
+        WeightWindow(parent,neuron)
     
     def updateGraphics(self):
         self.resetGraphics()
@@ -137,8 +136,10 @@ class MainWindow(Frame):
         self.setGraphics(self.geometry.canvas,self.geometry.values,self.geometry.lines,self.geometry.labels,self.geometry.acts)
             
     def resetGraphics(self):
-        self.popup.destroy()
         self.geometry.canvas.delete("all")
+        
+    def chooseActFunction():
+        print("")
         
     def reInit(self):
         
@@ -156,18 +157,33 @@ class MainWindow(Frame):
         self.updateGraphics()
         
 class WeightWindow(Frame):
-    def __init__(self, parent, weights):
+    def __init__(self, parent, neuron):
         Frame.__init__(self, parent)
 
         self.parent = parent
-        self.weights = weights
+        self.neuron = neuron
         
         self.initUI()
         
     def initUI(self):
             
         titleTop = self.parent.title("Edit weights")
-        print(self.weights)
+        
+        print(self.neuron)
+        
+        v=[]
+        l=[]
+        
+        for i in range(0,len(self.neuron)):
+            v.append(Entry(self.parent))
+            v[i].insert(0, str(self.neuron[i][0]))
+            v[i].grid(row=i,column=0,padx=15,pady=5)
+            
+            w = Label(self.parent, text=(("Weight " + str(i)) if i != len(self.neuron)-1 else ("Weight " + str(i) + " (bias)")))
+            w.grid(row=i,column=1,padx=15,pady=1)
+        
+        leftButton = Button(self.parent, text="Update weights") # feedforward button
+        leftButton.grid(row=len(self.neuron),column=0,padx=15,pady=15)
             
 def propagate(frame, canvas, entry):
     from tkinter import messagebox
@@ -197,13 +213,33 @@ class NetworkGraphic(object):
         self.radius = radius
             
             
-def sigmoidToHex(w): # maps numbers in range [0,1] to colors along blue-red spectrum
-    if w > 0.5:
-        rgb=(255,int(255*-2*(w-1)),int(255*-2*(w-1)))
+def sigmoidToHex(a): # maps numbers in range [0,1] to colors along blue-red spectrum
+    if a >= 0.5:
+        rgb=(255,int(255*-2*(a-1)),int(255*-2*(a-1)))
     else:
-        rgb=(int(255*(w*2)),int(255*(w*2)),255)
+        rgb=(int(255*(a*2)),int(255*(a*2)),255)
     return '#%02x%02x%02x' % rgb
     
+def stepToHex(a):
+    if a >= 0.5:
+        return '#ff0000'
+    else:
+        return '#0000ff'
+    
+def tanhToHex(a): # maps numbers in range [-1,1] to colors along blue-red spectrum
+    if a >= 0.0:
+        rgb=(255,int(255*(1-a)),int(255*(1-a)))
+    else:
+        rgb=(int(255*(1-abs(a))),int(255*(1-abs(a))),255)
+    return '#%02x%02x%02x' % rgb
+    
+def hexConverter(a, func):
+    if func == 'sigmoid':
+        return sigmoidToHex(a)
+    elif func == 'step':
+        return stepToHex(a)
+    elif func == 'tanh':
+        return tanhToHex(a)
         
 def distances(l,offset=0): # l = [ l_1, l_2, l_3, ... l_n ]
     if len(l) == 2:
