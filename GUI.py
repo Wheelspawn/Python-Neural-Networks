@@ -19,7 +19,7 @@ class MainWindow(Frame):
         self.initUI()
         
     def initButtons(self):
-        titleTop = self.parent.title("Artificial neural network simulator")
+        titleTop = self.parent.title("Singleton 0.0.1")
         
         inputEntry = Entry(self.parent) # input values
         inputEntry.grid(row=0,column=0,padx=5,pady=5)
@@ -157,33 +157,37 @@ class MainWindow(Frame):
         self.updateGraphics()
         
 class WeightWindow(Frame):
-    def __init__(self, parent, neuron):
+    def __init__(self, parent, neuron, entries=[], labels=[]):
         Frame.__init__(self, parent)
 
         self.parent = parent
         self.neuron = neuron
+        self.entries = entries[:]
+        self.labels = labels[:]
         
         self.initUI()
         
     def initUI(self):
-            
         titleTop = self.parent.title("Edit weights")
         
-        print(self.neuron)
-        
-        v=[]
-        l=[]
         
         for i in range(0,len(self.neuron)):
-            v.append(Entry(self.parent))
-            v[i].insert(0, str(self.neuron[i][0]))
-            v[i].grid(row=i,column=0,padx=15,pady=5)
+            self.entries.append(Entry(self.parent))
+            self.entries[i].insert(0, str(self.neuron[i][0]))
+            self.entries[i].grid(row=i,column=0,padx=15,pady=5)
             
-            w = Label(self.parent, text=(("Weight " + str(i)) if i != len(self.neuron)-1 else ("Weight " + str(i) + " (bias)")))
-            w.grid(row=i,column=1,padx=15,pady=1)
+            self.labels.append(Label(self.parent, text=(("Weight " + str(i)) if i != len(self.neuron)-1 else ("Weight " + str(i) + " (bias)"))))
+            self.labels[i].grid(row=i,column=1,padx=15,pady=1)
         
-        leftButton = Button(self.parent, text="Update weights") # feedforward button
+        leftButton = Button(self.parent, text="Update weights", command=self.updateWeights) # feedforward button
         leftButton.grid(row=len(self.neuron),column=0,padx=15,pady=15)
+        
+        
+    def updateWeights(self):
+        for i in range(len(self.entries)):
+            print("Old: ", self.neuron[i][0])
+            print("New: ", self.entries[i].get())
+            self.neuron[i][0] = self.entries[i].get()
             
 def propagate(frame, canvas, entry):
     from tkinter import messagebox
