@@ -44,7 +44,7 @@ class MainWindow(Frame):
         var2 = StringVar(self)
         var2.set("sigmoid")
         
-        actFunction = OptionMenu(self.parent, var2, "", "sigmoid", "tanh", "step", command=lambda: self.chooseActFunction) # optionmenu to set the activation function
+        actFunction = OptionMenu(self.parent, var2, "", "sigmoid", "tanh", "step", command=self.chooseActFunction(var2.get())) # optionmenu to set the activation function
         actFunction.grid(row=5,column=12)
         
         bottomButton = Button(self.parent, text="Reinitialize", command=self.reInit) # reinitializes network based on parameters given by user (or by default)
@@ -138,8 +138,10 @@ class MainWindow(Frame):
     def resetGraphics(self):
         self.geometry.canvas.delete("all")
         
-    def chooseActFunction():
-        print("")
+    def chooseActFunction(self, v):
+        print(v)
+        if v == 'step' or 'sigmoid' or 'tanh':
+            self.n.act=v
         
     def reInit(self):
         
