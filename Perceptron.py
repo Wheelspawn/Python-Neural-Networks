@@ -49,16 +49,16 @@ class NN(object):
         
         inputs = inputs[:]
         inputs.append(self.bias) # bias in the input layer
-        allVals = [inputs]
+        allVals = [inputs] # this is our first level of activations
             
         for i in range(len(self.w)):
-            allVals.append([])
+            allVals.append([]) # add a list to represent the activations for the next layer
             for j in range(len(self.w[i])):
-                a = sigmoid(np.dot(allVals[i],self.w[i][j]))
+                a = sigmoid(np.dot(allVals[i],self.w[i][j])) # dot product of activations and weights for each neuron in layer
                 allVals[i+1].append(a)
                 
             if i < len(self.w)-2:
-                allVals[i+1].append(self.bias)
+                allVals[i+1].append(self.bias) # we must add the bias as the last activation for each layer, for all but the output node and final activations
                 
         return allVals
         
@@ -172,9 +172,6 @@ def mutate(n):
 # activation functions
 #
                 
-def helloThere():
-    print("Hello there")
-
 def generateData(n): # generates input/output pairs
     vals = []
     while len(vals) < n:
