@@ -50,20 +50,15 @@ class NN(object):
         inputs = inputs[:]
         inputs.append(self.bias) # bias in the input layer
         allVals = [inputs]
-        
-        print("inputs: ", allVals)
             
         for i in range(len(self.w)):
             allVals.append([])
             for j in range(len(self.w[i])):
-                print("neuron: ", self.w[i][j])
                 a = sigmoid(np.dot(allVals[i],self.w[i][j]))
                 allVals[i+1].append(a)
                 
             if i < len(self.w)-2:
                 allVals[i+1].append(self.bias)
-                
-            print(allVals[i+1])
                 
         return allVals
         
