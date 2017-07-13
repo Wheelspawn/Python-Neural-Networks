@@ -30,8 +30,8 @@ class NN(object):
     def initWeights(self):
         self.w = []
         for i in range(len(self.l)-1):
-            bit = ((i==len(self.l)-2)!=True).real # bit that tells if loop is at its end
-            n = 2*np.random.random_sample((self.l[i]+1,self.l[i+1]))-1 # weights are initialized to random values between -1 and 1. Add an extra weight for the bias node
+            bit = ((i==len(self.l)-2)!=True).real if len(self.l) > 2 else 1 # bit that tells if loop is at its end, for bias
+            n = 2*np.random.random_sample((self.l[i+1],self.l[i]+bit))-1 # weights are initialized to random values between -1 and 1. Add an extra weight for hidden layer bias node
             self.w.append(n)
                 
     def getWeights(self):
@@ -46,32 +46,29 @@ class NN(object):
         self.w = new
         
     def feedForward(self, inputs, brk=False): # the brk argument returns all the activations
+        
         inputs = inputs[:]
         inputs.append(self.bias) # bias in the input layer
-        allVals = [inputs] 
+        allVals = [inputs]
         
-        try:
-            a = np.dot(inputs,self.w[0]) # activations
-            for i in range(len(a)): # for the inputs into the network
-                a[i] = eval((self.act+'({})').format(a[i])) # send each value through the specified activation function
-                
-            allVals.append(a)
+        print("inputs: ", allVals)
             
-            for i in range(1,len(self.w)): # for the processing of the hidden layers
-                a = np.append(a, self.bias) # activations
-                a = np.dot(a, self.w[i]) # integration of inputs in the next layer
-                for i in range(len(a)):
-                    a[i] = eval((self.act+'({})').format(a[i])) # activations
-                allVals.append(a)
+        for i in range(len(self.w)):
+            allVals.append([])
+            for j in range(len(self.w[i])):
+                print("neuron: ", self.w[i][j])
+                a = sigmoid(np.dot(allVals[i],self.w[i][j]))
+                allVals[i+1].append(a)
                 
-            if brk == True:
-
-                for i in range(1,len(allVals)-1):
-                    allVals[i] = np.append(allVals[i],self.bias)
+            if i < len(self.w)-2:
+                allVals[i+1].append(self.bias)
                 
-                return allVals # return every activation
-            return a
+            print(allVals[i+1])
                 
+        return allVals
+        
+        '''
+        try:
         except ValueError:
             print()
             print("Input dimensions are incorrect")
@@ -80,13 +77,13 @@ class NN(object):
             print()
             print("Activation function not recognized")
             return
+        '''
             
     def connection(self, layer, send, receive): # get connection weight from neuron in specified layer to neuron in adjacent layer
         return self.w[layer][send][receive]
         
     def neuronWeights(self, layer, index): # get the weights of a neuron from specified layer and index
-        end = self.l[layer]+1
-        return self.w[layer][0:end,index:index+1]
+        return self.w[layer][index]
         
     def bp(self,inputs,target): # inp is an array or arrays of values. target is the matching intended output.
                                 # The pattern follows [ [i_1, i_2, ..., i_n] ] and [ [t_1, t_2, ..., t_n] ]

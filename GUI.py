@@ -170,12 +170,11 @@ class WeightWindow(Frame):
         self.initUI()
         
     def initUI(self):
-        titleTop = self.parent.title("Edit weights")
-        
+        titleTop = self.parent.title("Edit weights")        
         
         for i in range(0,len(self.neuron)):
             self.entries.append(Entry(self.parent))
-            self.entries[i].insert(0, str(self.neuron[i][0]))
+            self.entries[i].insert(0, str(self.neuron[i]))
             self.entries[i].grid(row=i,column=0,padx=15,pady=5)
             
             self.labels.append(Label(self.parent, text=(("Weight " + str(i)) if i != len(self.neuron)-1 else ("Weight " + str(i) + " (bias)"))))
@@ -187,9 +186,7 @@ class WeightWindow(Frame):
         
     def updateWeights(self):
         for i in range(len(self.entries)):
-            print("Old: ", self.neuron[i][0])
-            print("New: ", self.entries[i].get())
-            self.neuron[i][0] = self.entries[i].get()
+            self.neuron[i] = self.entries[i].get()
             
 def propagate(frame, canvas, entry):
     from tkinter import messagebox
