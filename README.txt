@@ -9,6 +9,7 @@ What has been accomplished so far:
 	- Classifying random points inside or outside piecewise function that defines a circle
 	In both of these cases, error was lower than 0.01.
  - Backpropagation is working for the final layer, but still has to be configured for the posterior layers.
+ - Functioning GUI lets you initialize neural network, feedforward, and adjust weights.
 
 About the current version:
 
@@ -41,25 +42,21 @@ Backpropagation accepts an array of input vectors and an array of target value v
 n.bp( [[0,1],[1,0],[1,1],[0,0]] , [[1],[1],[0],[0]] )
 
 Up-and-coming additions:
- - A better, easier to use evolutionary algorithm. Better parameter control. Evolutionary algorithms need a crazy amount of fine tuning.
+ - A better, easier to use evolutionary algorithm. Better parameter control.
  - Finished tic-tac-toe demo. Users will be able to play TTT against a trained MLP.
- - A simple GUI to demonstrate TTT for non-programmers and people who don't want to use the console. There will be a neural network graphic with a heatmap to display activations (for your own amusement).
  - A demo for backpropagation. Possibly something like a logic table.
 
 Additions for the far future:
  - Support for neural network variants:
 	- Recurrent
+	- LSTM
 	- Convolutional
 	- Self-organizing map
-	- Winner-takes-all
 	- Spiking
-	- Hopfield
  - More learning algorithms:
 	- Self-organized learning
 	- Adaptive resonance theory
 	- STDP, BCM and Hebbian learning
- - GUI support.
  - Modularity. Initialize multiple neural networks and connect them together.
  - I/O support. Get input from an Arduino microcontroller or camera. Send output to an Arduino microcontroller.
- - Neural networks designed for robot control
  - Deep learning support
