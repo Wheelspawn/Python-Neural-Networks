@@ -1,3 +1,4 @@
+
 import numpy as np
 import random
 import math
@@ -137,37 +138,7 @@ def hiddenError(o, e):
     error = -o*(1 - o)*e
     # print(error)
     return error
-    
-    
-def evolve(n, data, trial='error'):
-    for i in range(80000):
-        n.initWeights()
-        totalError = 0.0
-        if trial == 'error':
-            for j in range(100):
-                result = n.feedForward(data[j][0][0])
-                totalError += 1/200 * (result - data[j][1][0])**2
-                print(totalError)
-        elif trial == 'score':
-            print('score')
-        
-def breed(m,n):
-    a = m.getWeights()
-    b = n.getWeights()
-    o = NN(m.l, m.act, m.bias)
-    c = o.getWeights()
-    for i in range(len(a)):
-        for j in range(len(a[i])):
-            for k in range(len(a[i][j])):
-                c[i][j][k] = random.choice([a[i][j][k],b[i][j][k]])
-    return c
-    
-def mutate(n):
-    l = n.getWeights()
-    for i in range(len(l)):
-        for j in range(len(l[i])):
-            for k in range(len(l[i][j])):
-                l[i][j][k] += random.choice([0,0,random.gauss(0,0.5)])
+
 #
 # activation functions
 #
@@ -293,14 +264,6 @@ def softplus(finalSum): # soft rectilinear function
 def tanh(finalSum):
     return math.tanh(finalSum)
 
-def sigmoidDeriv(finalSum):
-    p = sigmoid(finalSum)
-    return p*(1-p)
-    
-# evolutionary algorithm
-# generate
-# test (error/score, world)
-# select
 
 def demo1(): # or table demonstration
     print("Nonlinear classification. Requires matplotlib.")
