@@ -31,7 +31,8 @@ class NN(object):
     def initWeights(self):
         self.w = []
         for i in range(len(self.l)-1):
-            bit = ((i==len(self.l)-2)!=True).real if len(self.l) > 2 else 1 # bit that tells if loop is at its end, for bias
+            bit =(i//(len(self.l)-2)^1) # bit that tells if loop is at its end, for bias
+            # print(bit)
             n = 2*np.random.random_sample((self.l[i+1],self.l[i]+bit))-1 # weights are initialized to random values between -1 and 1. Add an extra weight for hidden layer bias node
             self.w.append(n)
                 
@@ -61,7 +62,10 @@ class NN(object):
             if i < len(self.w)-2:
                 allVals[i+1].append(self.bias) # we must add the bias as the last activation for each layer, for all but the output node and final activations
                 
-        return allVals
+        if brk==False:
+            return allVals[-1]
+        else:
+            return allVals
         
         '''
         try:
@@ -80,11 +84,22 @@ class NN(object):
         
     def neuronWeights(self, layer, index): # get the weights of a neuron from specified layer and index
         return self.w[layer][index]
-        
-    def bp(self,inputs,target): # inp is an array or arrays of values. target is the matching intended output.
-                                # The pattern follows [ [i_1, i_2, ..., i_n] ] and [ [t_1, t_2, ..., t_n] ]
-                                # where i_1, i_2, ..., i_n and t_1, t_2, ..., t_n are input and target vectors, respectively
     
+    def bp(self,inputs,targets,batch=True):
+        
+        if len(inputs[0]) != self.l[0]:
+            print("No-go. Length of input vectors must be equal to length of target vectors.")
+        else:
+            if batch==True:      
+                for i in range(len(inputs)):
+                    out = self.feedForward(inputs[i],True)
+                    print(inputs[i])
+                    print(targets[i])
+                    errors = self.calculateErrors(out, inputs[i],targets[i])
+                    self.updateWeights(out, errors)
+                    
+        
+        '''
         outputError = []
         # perceptron
         for i in range(len(inputs)): # for each input
@@ -99,11 +114,6 @@ class NN(object):
                 
                 outputError.append(d)
             
-            '''
-            print("Weights after output node update: ", self.w)
-            print("Output error: ", outputError)
-            '''
-            
             if len(self.l) > 2: # if there are one or more hidden layers
                 totalError = []
                 for i in range(len(self.w)-2,-1,-1): # for each layer
@@ -112,7 +122,6 @@ class NN(object):
                             
                             npWeights = np.dot(outputError,self.neuronWeights(1,0)[j])
                             
-                            '''
                             print("Layer out: ", out[i+1][j])
                             print("Output error: ", outputError)
                             
@@ -122,13 +131,89 @@ class NN(object):
                             print("New error: ", hiddenError(out[i+1][j], npWeights))
                             
                             print("Final delta: ", self.w[i+1][k][0] * hiddenError(out[i+1][j], npWeights))
-                            '''
                             
                             totalError.append(self.w[i][k][j] * hiddenError(out[i+1][j], outputError[0]))
                             self.w[i][k][j] += self.c * hiddenError(out[i+1][j], npWeights) * out[i][k]
                             
                     outputError = totalError[:]
                     totalError = []
+            '''
+            
+    def calculateErrors(self, out, inputVec, targetVec):
+        
+        errors = [[]]
+        
+        # inputVec = errors[0], I think???
+        
+        # print("")
+        # print("Output layer")
+        # print("")
+        
+        for i in range(len(self.w[-1])): # for every output node
+            
+            d = deltaError(out[-1][i], targetVec[i]) # calculate error
+            
+            # for j in range(len(self.w[-1][i])):
+                
+                # print("Weight: ", self.w[-1][i][j])
+                # print("Output: ", out[-2][j])
+                # print("Delta: ", d)
+        
+                # self.w[-1][i][j] += self.c * out[-2][j] * d
+                
+                # print("Final: ", self.w[-1][i][j])
+            
+            errors[0].append(d)
+            
+        # print("Output errors: ", errors)
+        
+        # print("")
+        # print("Hidden layer")
+        # print("")
+        
+        if len(self.l) > 2: # if there are one or more hidden layers
+            for i in range(len(self.w)-2,-1,-1): # for each layer
+                errors = [[]] + errors
+                for j in range(len(self.w[i])): # for each neuron in layer
+                    
+                    error = 0
+                    for k in range(len(self.w[i+1])):
+                        # print("Weight: ", self.neuronWeights(i+1,k)[j])
+                        # print("Prev error: ", errors)
+                        
+                        error += self.neuronWeights(i+1,k)[j] * errors[1][k]
+                    
+                    # print("Output: ", out[i+1][j])
+                    errors[0].append(out[i+1][j]*(1-out[i+1][j])*error)
+                
+        # print("Final errors: ", errors)
+        return errors
+            
+    def updateWeights(self, out, errors):
+        print("and we arrive at the final destination")
+        print("")
+        print(self.w)
+        print("")
+        print(out)
+        print("")
+        print(errors)
+        
+        for i in range(len(self.w[-1])): # for every output node
+            for j in range(len(self.w[-1][i])):
+                self.w[-1][i][j] += self.c * out[-2][j] * errors[-1][i]
+                
+        if len(self.l) > 2: # if there are one or more hidden layers
+            for i in range(len(self.w)-2,-1,-1): # for each layer
+                for j in range(len(self.w[i])): # for each neuron:
+                    for k in range(len(self.w[i][j])): # for each weight:
+                        print("Weight: ", self.w[i][j][k])
+                        print("Output: ", out[i+1][j])
+                        print("Errors: ", errors[i][j])
+                        print("")
+                        self.w[i][j][k] += self.c * out[i+1][j] * errors[i][j]
+                
+        print("")
+        print(self.w)
              
 def deltaError(o, t): # output, target
     error = o*(1 - o)*(t - o)
@@ -144,8 +229,11 @@ def hiddenError(o, e):
 #
                 
 def generateData(n): # generates input/output pairs
-    vals = []
-    while len(vals) < n:
+
+    inputs = []
+    labels= []
+    
+    while len(inputs) < n:
         x = round(random.random(),3)
         y = round(random.random(),3)
         
@@ -156,12 +244,14 @@ def generateData(n): # generates input/output pairs
         circleUpper = "( ( x - 1/2 )**2 + ( y - 1/2 )**2 > 1/16 )"
         circleLower = "( ( x - 1/2 )**2 + ( y - 1/2 )**2 <= 1/16 )"
         
-        if eval(parUpper):
-            vals.append([[x, y],[1]]) # input, desired output
-        elif eval(parLower):
-            vals.append([[x, y],[0]]) # input, desired output
+        inputs.append([x,y])
+        
+        if eval(circleUpper):
+            labels.append([1]) # input, desired output
+        elif eval(circleLower):
+            labels.append([0]) # input, desired output
             
-    return vals
+    return [inputs,labels]
 
 def plotData(x1,y1,x2,y2):
     pylab.plot(x1,y1,'.',color='r')
@@ -183,7 +273,7 @@ def plotNetwork(n):
     # xLine = []
     # yLine = []
     
-    for i in range(0,500):
+    for i in range(0,800):
         x = random.random()
         y = random.random()
         f = n.feedForward([x,y])
@@ -267,19 +357,21 @@ def tanh(finalSum):
 
 def demo1(): # or table demonstration
     print("Nonlinear classification. Requires matplotlib.")
-    o=NN([2,2,1],act='sigmoid',c=0.03,bias=1.0)
+    o=NN([2,5,1],act='sigmoid',c=0.03,bias=1.0)
     print("Weights: ", o.getWeights())
     print("")
     
-    z=generateData(40)
-    print("Data: ", z)
+    z=generateData(800)
+    inputs = z[0]
+    labels = z[1]
+    
     
     print("Training...")
-    for i in range(0,500):
+    for i in range(0,200):
         for j in range(0,len(z)-1):
             # print(j)
             # print([z[j][0]], [z[j][1]])
-            o.bp([z[j][0]], [z[j][1]])
+            o.bp(inputs,labels)
 
     print("Weights: ", o.getWeights())
     print("")
@@ -342,12 +434,21 @@ def demo3():
 # print("Type demo1() for a graphical table with linear classification (requires matplotlib)")
 # print("Type demo2() for a non-graphical demo with or tables")
 
-'''
+
 m=NN([2,2,1],c=1.0,bias=0.0)
-m.w = [np.array([ [0.1, 0.4],[0.8, 0.6],[0.0, 0.0] ]), np.array([ [0.3],[0.9],[0.0] ])]
+m.w = [np.array( [ [ 0.1, 0.8, 0.0 ], [ 0.4, 0.6, 0.0] ] ), np.array( [ [ 0.3, 0.9 ] ] ) ]
 print("Weights: ", m.w)
 o=m.feedForward([0.35,0.9],brk=True)
 print("Ouput: ", o)
 m.bp([[0.35,0.9]],[[0.5]])
-print("New weights: ", m.w)
+o=m.feedForward([0.35,0.9],brk=True)
+print("New ouput: ", o)
+'''
+
+m=NN([2,3,2],c=1.0,bias=0.0)
+print("Weights: ", m.w)
+o=m.feedForward([0.35,0.9],brk=True)
+print("Ouput: ", o)
+m.bp([[0.35,0.9]],[[0.5,0.5]])
+
 '''
