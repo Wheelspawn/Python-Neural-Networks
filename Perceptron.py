@@ -31,8 +31,8 @@ class NN(object):
     def initWeights(self):
         self.w = []
         for i in range(len(self.l)-1):
-            bit =(i//(len(self.l)-2)^1) # bit that tells if loop is at its end, for bias
-            # print(bit)
+            bit = (1 if (i < len(self.l)-2 or len(self.l) == 2) else 0) # bit that tells if loop is at its end, for bias
+            print(bit)
             n = 2*np.random.random_sample((self.l[i+1],self.l[i]+bit))-1 # weights are initialized to random values between -1 and 1. Add an extra weight for hidden layer bias node
             self.w.append(n)
                 
@@ -93,52 +93,11 @@ class NN(object):
             if batch==True:      
                 for i in range(len(inputs)):
                     out = self.feedForward(inputs[i],True)
-                    print(inputs[i])
-                    print(targets[i])
+                    # print("Input vector: ", inputs[i])
+                    # print("Target vector: ", targets[i])
                     errors = self.calculateErrors(out, inputs[i],targets[i])
                     self.updateWeights(out, errors)
                     
-        
-        '''
-        outputError = []
-        # perceptron
-        for i in range(len(inputs)): # for each input
-            out = self.feedForward(inputs[i],True) # calculate the output
-            for j in range(len(self.w[-1][0])): # for every output node
-                
-                d = deltaError(out[-1][j], target[i][j]) # calculate error
-                
-                for k in range(len(self.w[i])): # for every node in the hidden layer (+1 for bias)
-                    # print("W: ", self.w[-1][k][j])
-                    self.w[-1][k][j] += self.c * out[-2][k] * d
-                
-                outputError.append(d)
-            
-            if len(self.l) > 2: # if there are one or more hidden layers
-                totalError = []
-                for i in range(len(self.w)-2,-1,-1): # for each layer
-                    for j in range(len(self.w[i][0])):
-                        for k in range(len(self.w[i])):
-                            
-                            npWeights = np.dot(outputError,self.neuronWeights(1,0)[j])
-                            
-                            print("Layer out: ", out[i+1][j])
-                            print("Output error: ", outputError)
-                            
-                            print("Output neuron weights: ", m.neuronWeights(1,0)[j])
-                            
-                            print("npWeights: ", npWeights)
-                            print("New error: ", hiddenError(out[i+1][j], npWeights))
-                            
-                            print("Final delta: ", self.w[i+1][k][0] * hiddenError(out[i+1][j], npWeights))
-                            
-                            totalError.append(self.w[i][k][j] * hiddenError(out[i+1][j], outputError[0]))
-                            self.w[i][k][j] += self.c * hiddenError(out[i+1][j], npWeights) * out[i][k]
-                            
-                    outputError = totalError[:]
-                    totalError = []
-            '''
-            
     def calculateErrors(self, out, inputVec, targetVec):
         
         errors = [[]]
@@ -190,30 +149,36 @@ class NN(object):
         return errors
             
     def updateWeights(self, out, errors):
-        print("and we arrive at the final destination")
+        
         print("")
-        print(self.w)
+        print("Errors: ",errors)
         print("")
-        print(out)
-        print("")
-        print(errors)
         
         for i in range(len(self.w[-1])): # for every output node
             for j in range(len(self.w[-1][i])):
+                
+                print("Weight: ", self.w[-1][i][j])
+                print("Output: ", out[-2][j])
+                print("Error: ", errors[-1][i])
+                print("")
+                        
                 self.w[-1][i][j] += self.c * out[-2][j] * errors[-1][i]
                 
         if len(self.l) > 2: # if there are one or more hidden layers
             for i in range(len(self.w)-2,-1,-1): # for each layer
                 for j in range(len(self.w[i])): # for each neuron:
                     for k in range(len(self.w[i][j])): # for each weight:
+                        
                         print("Weight: ", self.w[i][j][k])
-                        print("Output: ", out[i+1][j])
-                        print("Errors: ", errors[i][j])
+                        print("Output: ", out[i][k])
+                        print("Errors ", errors[i][j])
                         print("")
-                        self.w[i][j][k] += self.c * out[i+1][j] * errors[i][j]
+                        
+                        self.w[i][j][k] += self.c * out[i][k] * errors[i][j]
+                    # print("")
                 
-        print("")
-        print(self.w)
+        # print("")
+        # print(self.w)
              
 def deltaError(o, t): # output, target
     error = o*(1 - o)*(t - o)
@@ -357,7 +322,7 @@ def tanh(finalSum):
 
 def demo1(): # or table demonstration
     print("Nonlinear classification. Requires matplotlib.")
-    o=NN([2,5,1],act='sigmoid',c=0.03,bias=1.0)
+    o=NN([2,10,1],act='sigmoid',c=0.03,bias=1.0)
     print("Weights: ", o.getWeights())
     print("")
     
@@ -388,7 +353,7 @@ def demo2():
     print("Weights: ", o.getWeights())
     print("")
     print("Training",end='')
-    for i in range(0,20000):
+    for i in range(0,3000):
         if i%1000==0:
             print('.',end='')
         o.bp([[0.0,0.0]],[[0]])
@@ -434,21 +399,12 @@ def demo3():
 # print("Type demo1() for a graphical table with linear classification (requires matplotlib)")
 # print("Type demo2() for a non-graphical demo with or tables")
 
-
 m=NN([2,2,1],c=1.0,bias=0.0)
 m.w = [np.array( [ [ 0.1, 0.8, 0.0 ], [ 0.4, 0.6, 0.0] ] ), np.array( [ [ 0.3, 0.9 ] ] ) ]
 print("Weights: ", m.w)
+print("")
 o=m.feedForward([0.35,0.9],brk=True)
 print("Ouput: ", o)
 m.bp([[0.35,0.9]],[[0.5]])
-o=m.feedForward([0.35,0.9],brk=True)
+o=m.feedForward([0.35,0.9])
 print("New ouput: ", o)
-'''
-
-m=NN([2,3,2],c=1.0,bias=0.0)
-print("Weights: ", m.w)
-o=m.feedForward([0.35,0.9],brk=True)
-print("Ouput: ", o)
-m.bp([[0.35,0.9]],[[0.5,0.5]])
-
-'''
