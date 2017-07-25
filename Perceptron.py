@@ -32,7 +32,7 @@ class NN(object):
         self.w = []
         for i in range(len(self.l)-1):
             bit = (1 if (i < len(self.l)-2 or len(self.l) == 2) else 0) # bit that tells if loop is at its end, for bias
-            print(bit)
+            # print(bit)
             n = 2*np.random.random_sample((self.l[i+1],self.l[i]+bit))-1 # weights are initialized to random values between -1 and 1. Add an extra weight for hidden layer bias node
             self.w.append(n)
                 
@@ -145,13 +145,22 @@ class NN(object):
                 errors = [[]] + errors
                 for j in range(len(self.w[i])): # for each neuron in layer
                     
+                    a = []
+                    b = []
+                    
                     error = 0
                     for k in range(len(self.w[i+1])):
                         # print("Weight: ", self.neuronWeights(i+1,k)[j])
                         # print("Prev error: ", errors)
                         
+                        a.append(self.neuronWeights(i+1,k)[j])
+                        b.append(errors[1][k])
+                        
                         error += self.neuronWeights(i+1,k)[j] * errors[1][k]
                     
+                    # print("i, j error: ")
+                    # print(a)
+                    # print(b)
                     # print("Output: ", out[i+1][j])
                     errors[0].append(hiddenError(out[i+1][j], error))
                 
@@ -160,18 +169,18 @@ class NN(object):
             
     def updateWeights(self, out, errors):
         
-        # print("")
-        # print("Errors: ",errors)
-        # print("")
+        print("")
+        print("Errors: ",errors)
+        print("")
         
         for i in range(len(self.w[-1])): # for every output node
             for j in range(len(self.w[-1][i])):
                 
-                # print("Weight: ", self.w[-1][i][j])
-                # print("Output: ", out[-2][j])
-                # print("Error: ", errors[-1][i])
-                # print("")
-                        
+                print("Weight: ", self.w[-1][i][j])
+                print("Output: ", out[-2][j])
+                print("Error: ", errors[-1][i])
+                print("")
+                
                 self.w[-1][i][j] += self.c * out[-2][j] * errors[-1][i]
                 
         if len(self.l) > 2: # if there are one or more hidden layers
@@ -179,23 +188,23 @@ class NN(object):
                 for j in range(len(self.w[i])): # for each neuron:
                     for k in range(len(self.w[i][j])): # for each weight:
                         
-                        # print("Weight: ", self.w[i][j][k])
-                        # print("Output: ", out[i][k])
-                        # print("Errors ", errors[i][j])
-                        # print("")
+                        print("Weight: ", self.w[i][j][k])
+                        print("Output: ", out[i][k])
+                        print("Errors ", errors[i][j])
+                        print("")
                         
                         self.w[i][j][k] += self.c * out[i][k] * errors[i][j]
-                    # print("")
+                    print("")
                 
-        # print("")
-        # print(self.w)
+        print("")
+        print(self.w)
              
 def deltaError(o, t): # output, target
     error = o*(1 - o)*(t - o)
     return error
     
 def hiddenError(o, e):
-    error = -o*(1 - o)*e
+    error = o*(1 - o)*e
     return error
 
 #
@@ -220,9 +229,9 @@ def generateData(n): # generates input/output pairs
         
         inputs.append([x,y])
         
-        if eval(circleUpper):
+        if eval(parUpper):
             labels.append([1]) # input, desired output
-        elif eval(circleLower):
+        elif eval(parLower):
             labels.append([0]) # input, desired output
             
     return [inputs,labels]
@@ -331,12 +340,12 @@ def tanh(finalSum):
 
 def demo1(): # or table demonstration
     print("Nonlinear classification. Requires matplotlib.")
-    o=NN([2,1],act='sigmoid',c=0.03,bias=1.0)
+    o=NN([2,8,1],act='sigmoid',c=0.03,bias=1.0)
     print("Weights: ", o.getWeights())
     print("")
     
     for a in range(0,20):
-        z=generateData(200)
+        z=generateData(60)
         inputs = z[0]
         labels = z[1]
         
@@ -387,9 +396,9 @@ def demo3():
         if i%1000==0:
             print(p.getWeights())
         #     print(".", end="")
-        p.bp([[1.0,0.0,0.0]],([[0,1,0,0,1]]))
-        p.bp([[0.0,1.0,0.0]],([[1,0,0,1,0]]))
-        p.bp([[0.0,0.0,1.0]],([[0,0,1,0,1]]))
+        p.bp([[1.0,0.0,0.0]],[[0,1,0,0,1]])
+        p.bp([[0.0,1.0,0.0]],[[1,0,0,1,0]])
+        p.bp([[0.0,0.0,1.0]],[[0,0,1,0,1]])
         # print(p.getWeights())
         
     print("")
@@ -402,15 +411,30 @@ def demo3():
     print(p.feedForward([0.0,1.0,0.0]))
     print(p.feedForward([0.0,0.0,1.0]))
 
-# print("Type demo1() for a graphical table with linear classification (requires matplotlib)")
-# print("Type demo2() for a non-graphical demo with or tables")
-
-m=NN([2,3,2,1],c=1.0,bias=0.0)
-m.w = [np.array( [ [ 0.1, 0.8, 0.0 ], [ 0.4, 0.6, 0.0] ] ), np.array( [ [ 0.3, 0.9 ] ] ) ]
+def demo4():
+    p=NN([2,4,1],act='sigmoid',bias=1)
+    print("XOR function to test nonlinearity of neural network")
+    print("")
+    print("Weights: ", p.getWeights())
+    print("")
+    for i in range(0,250):
+        p.bp([ [0.0,0.0], [1.0,0.0], [0.0,1.0], [1.0,1.0], ],([ [0], [1], [1], [0] ]))
+    print("")
+    print("Weights: ", p.getWeights())
+    print("")
+    print("In: [0][0]. Out: ", p.feedForward([0.0,0.0]))
+    print("In: [1][0]. Out: ", p.feedForward([1.0,0.0]))
+    print("In: [0][1]. Out: ", p.feedForward([0.0,1.0]))
+    print("In: [1][1]. Out: ", p.feedForward([1.0,1.0]))
+    
+'''
+m=NN([2,3,2],c=1.0,bias=0.0)
+# m.w = [np.array( [ [ 0.1, 0.8, 0.0 ], [ 0.4, 0.6, 0.0] ] ), np.array( [ [ 0.3, 0.9 ] ] ) ]
 print("Weights: ", m.w)
 print("")
 o=m.feedForward([0.35,0.9],brk=True)
 print("Ouput: ", o)
-m.bp([[0.35,0.9]],[[0.5]])
+m.bp([[0.35,0.9]],[[0.5,0.5]])
 o=m.feedForward([0.35,0.9])
 print("New ouput: ", o)
+'''
