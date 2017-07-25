@@ -87,16 +87,26 @@ class NN(object):
     
     def bp(self,inputs,targets,batch=True):
         
-        if len(inputs[0]) != self.l[0]:
+        if len(inputs[0]) != self.l[0]: # cheap error handling printout, must fix later
             print("No-go. Length of input vectors must be equal to length of target vectors.")
+            
         else:
-            if batch==True:      
+            if batch==True:
+                allErrors = []
+                allOutputs = []
+                
                 for i in range(len(inputs)):
-                    out = self.feedForward(inputs[i],True)
+                    allOutputs.append(self.feedForward(inputs[i],True))
                     # print("Input vector: ", inputs[i])
                     # print("Target vector: ", targets[i])
-                    errors = self.calculateErrors(out, inputs[i],targets[i])
-                    self.updateWeights(out, errors)
+                    allErrors.append(self.calculateErrors(allOutputs[i], inputs[i], targets[i]))
+                    
+                for i in range(len(allErrors)):
+                    self.updateWeights(allOutputs[i],allErrors[i])
+                    
+            else: # these lines are just a'trick' to do stochastic learning
+                for i in range(len(inputs)):
+                    self.bp([inputs[i]],[targets[i]],batch=True)
                     
     def calculateErrors(self, out, inputVec, targetVec):
         
@@ -143,24 +153,24 @@ class NN(object):
                         error += self.neuronWeights(i+1,k)[j] * errors[1][k]
                     
                     # print("Output: ", out[i+1][j])
-                    errors[0].append(out[i+1][j]*(1-out[i+1][j])*error)
+                    errors[0].append(hiddenError(out[i+1][j], error))
                 
         # print("Final errors: ", errors)
         return errors
             
     def updateWeights(self, out, errors):
         
-        print("")
-        print("Errors: ",errors)
-        print("")
+        # print("")
+        # print("Errors: ",errors)
+        # print("")
         
         for i in range(len(self.w[-1])): # for every output node
             for j in range(len(self.w[-1][i])):
                 
-                print("Weight: ", self.w[-1][i][j])
-                print("Output: ", out[-2][j])
-                print("Error: ", errors[-1][i])
-                print("")
+                # print("Weight: ", self.w[-1][i][j])
+                # print("Output: ", out[-2][j])
+                # print("Error: ", errors[-1][i])
+                # print("")
                         
                 self.w[-1][i][j] += self.c * out[-2][j] * errors[-1][i]
                 
@@ -169,10 +179,10 @@ class NN(object):
                 for j in range(len(self.w[i])): # for each neuron:
                     for k in range(len(self.w[i][j])): # for each weight:
                         
-                        print("Weight: ", self.w[i][j][k])
-                        print("Output: ", out[i][k])
-                        print("Errors ", errors[i][j])
-                        print("")
+                        # print("Weight: ", self.w[i][j][k])
+                        # print("Output: ", out[i][k])
+                        # print("Errors ", errors[i][j])
+                        # print("")
                         
                         self.w[i][j][k] += self.c * out[i][k] * errors[i][j]
                     # print("")
@@ -186,7 +196,6 @@ def deltaError(o, t): # output, target
     
 def hiddenError(o, e):
     error = -o*(1 - o)*e
-    # print(error)
     return error
 
 #
@@ -322,20 +331,17 @@ def tanh(finalSum):
 
 def demo1(): # or table demonstration
     print("Nonlinear classification. Requires matplotlib.")
-    o=NN([2,10,1],act='sigmoid',c=0.03,bias=1.0)
+    o=NN([2,1],act='sigmoid',c=0.03,bias=1.0)
     print("Weights: ", o.getWeights())
     print("")
     
-    z=generateData(800)
-    inputs = z[0]
-    labels = z[1]
-    
-    
-    print("Training...")
-    for i in range(0,200):
-        for j in range(0,len(z)-1):
-            # print(j)
-            # print([z[j][0]], [z[j][1]])
+    for a in range(0,20):
+        z=generateData(200)
+        inputs = z[0]
+        labels = z[1]
+        
+        print("Training...")
+        for i in range(0,20):
             o.bp(inputs,labels)
 
     print("Weights: ", o.getWeights())
@@ -399,7 +405,7 @@ def demo3():
 # print("Type demo1() for a graphical table with linear classification (requires matplotlib)")
 # print("Type demo2() for a non-graphical demo with or tables")
 
-m=NN([2,2,1],c=1.0,bias=0.0)
+m=NN([2,3,2,1],c=1.0,bias=0.0)
 m.w = [np.array( [ [ 0.1, 0.8, 0.0 ], [ 0.4, 0.6, 0.0] ] ), np.array( [ [ 0.3, 0.9 ] ] ) ]
 print("Weights: ", m.w)
 print("")
