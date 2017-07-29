@@ -23,12 +23,13 @@ class MainWindow(Frame):
         
         inputEntry = Entry(self.parent) # input values
         inputEntry.grid(row=0,column=0,padx=5,pady=5)
+        inputEntry.insert(0, "Inputs")
         
         leftButton = Button(self.parent, text="Feedforward", command=lambda: propagate(self, self.geometry.canvas, inputEntry.get())) # feedforward button
         leftButton.grid(row=1,column=0,pady=5)
         
-        backProp = Button(self.parent, text="Backpropagation") # button that loads weights from (an undecided extension) file
-        backProp.grid(row=2,column=0,padx=5,pady=5)
+        backPropagation = Button(self.parent, text="Backpropagation", command=lambda: self.initBackpropWindow(Tk(), self.n)) # button that loads weights from (an undecided extension) file
+        backPropagation.grid(row=2,column=0,padx=5,pady=5)
         
         load = Button(self.parent, text="Load weights from CSV") # button that loads weights from (an undecided extension) file
         load.grid(row=3,column=0,padx=5,pady=5)
@@ -137,6 +138,9 @@ class MainWindow(Frame):
                     self.popup.tk_popup(e.x_root,e.y_root,0)
                     self.popup.add_command(label="Edit weights", command=self.initWeightWindow(Tk(), self.n.neuronWeights(i-1,j)))
                     break
+                
+    def initBackpropWindow(self,parent,n):
+        BackpropWindow(parent,n)
                     
     def initWeightWindow(self,parent,neuron):
         WeightWindow(parent,neuron)
@@ -194,6 +198,43 @@ class WeightWindow(Frame):
     def updateWeights(self):
         for i in range(len(self.entries)):
             self.neuron[i] = self.entries[i].get()
+            
+class BackpropWindow(Frame):
+    def __init__(self, parent, neuron):
+        Frame.__init__(self, parent)
+
+        self.parent = parent
+        self.neuron = neuron
+        
+        self.initUI()
+        
+    def initUI(self):
+        titleTop = self.parent.title("Backpropagation")
+    
+        uploadPairs = Button(self.parent, text="Upload CSV input pairs", command=lambda: self.load())
+        uploadPairs.grid(row=0,column=0,padx=15,pady=15)
+        
+        uploadPairs = Button(self.parent, text="Upload CSV target pairs", command=lambda: self.load())
+        uploadPairs.grid(row=0,column=1,padx=15,pady=15)
+        
+        epochs = Entry(self.parent) # input values
+        epochs.grid(row=1,column=0,padx=5,pady=5)
+        epochs.insert(0, "Number of epochs")
+        
+        learn = IntVar()
+        
+        stochastic = Radiobutton(self.parent, text="Batch", variable=learn, value=1)
+        stochastic.grid(row=1,column=1,padx=5,pady=5)
+        
+        batch = Radiobutton(self.parent, text="Stochastic", variable=learn, value=2)
+        batch.grid(row=2,column=1,padx=5,pady=5)
+        
+        backProp = Button(self.parent, text="Train")
+        backProp.grid(row=2,column=0,padx=15,pady=15)
+        
+    def load(self):
+        from tkinter import filedialog
+        f = filedialog.askopenfilename()
             
 def propagate(frame, canvas, entry):
     from tkinter import messagebox
