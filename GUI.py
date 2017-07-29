@@ -19,7 +19,7 @@ class MainWindow(Frame):
         self.initUI()
         
     def initButtons(self):
-        titleTop = self.parent.title("Singleton 0.0.1")
+        titleTop = self.parent.title("Brainiac ANN Simulator 0.0.1")
         
         inputEntry = Entry(self.parent) # input values
         inputEntry.grid(row=0,column=0,padx=5,pady=5)
@@ -27,28 +27,40 @@ class MainWindow(Frame):
         leftButton = Button(self.parent, text="Feedforward", command=lambda: propagate(self, self.geometry.canvas, inputEntry.get())) # feedforward button
         leftButton.grid(row=1,column=0,pady=5)
         
+        backProp = Button(self.parent, text="Backpropagation") # button that loads weights from (an undecided extension) file
+        backProp.grid(row=2,column=0,padx=5,pady=5)
+        
         load = Button(self.parent, text="Load weights from CSV") # button that loads weights from (an undecided extension) file
-        load.grid(row=2,column=0,padx=5,pady=5)
+        load.grid(row=3,column=0,padx=5,pady=5)
         
         export = Button(self.parent, text="Export weights to CSV") # button that exports weights to (an undecided extension) file
-        export.grid(row=3,column=0,pady=5)
+        export.grid(row=4,column=0,pady=5)
+        
+        process = Button(self.parent, text="Process data and export to CSV") # button that exports weights to (an undecided extension) file
+        process.grid(row=5,column=0,padx=10,pady=5)
+        
+        recurrencies = Button(self.parent, text="Define recurrencies") # button that exports weights to (an undecided extension) file
+        recurrencies.grid(row=6,column=0,pady=5)
+        
+        ticTacToe = Button(self.parent, text="Tic-tac-toe") # button that exports weights to (an undecided extension) file
+        ticTacToe.grid(row=7,column=0,pady=5)
         
         layerOptions=["","0","1","2","3","4","5","6","7","8","9","10","11","12"] # max number of neurons in a layer is 12
         
         for i in range(9): # here we initalize eight optionmenus and give them a callback function for updating the layer information
             var = StringVar(self)
             var.set(self.n.l[i] if i<len(self.n.l) else layerOptions[1])
-            OptionMenu(self.parent, var, *layerOptions).grid(row=5,column=2+i,pady=15)
+            OptionMenu(self.parent, var, *layerOptions).grid(row=9,column=2+i,pady=15)
             self.menus.append(var)
         
         var2 = StringVar(self)
         var2.set("sigmoid")
         
-        actFunction = OptionMenu(self.parent, var2, "", "sigmoid", "tanh", "step", command=self.chooseActFunction(var2.get())) # optionmenu to set the activation function
-        actFunction.grid(row=5,column=12)
+        actFunction = OptionMenu(self.parent, var2, "", "sigmoid", "tanh", "step", command=lambda x: chooseActFunction(self.n, var2.get())) # optionmenu to set the activation function
+        actFunction.grid(row=9,column=12)
         
         bottomButton = Button(self.parent, text="Reinitialize", command=self.reInit) # reinitializes network based on parameters given by user (or by default)
-        bottomButton.grid(row=5,column=13,pady=15)
+        bottomButton.grid(row=9,column=13,pady=15)
 
     def initUI(self): # create the user interface
     
@@ -57,7 +69,7 @@ class MainWindow(Frame):
         self.geometry = NetworkGraphic() # this class will hold variables to represent the canvas
                                          # and graphical objects that make up the neural network such as circles, lines and labels
         self.geometry.canvas = Canvas(self.parent,width=self.geometry.width,height=self.geometry.height,relief="sunken",borderwidth=1) # initalize with parameters inherited from self
-        self.geometry.canvas.grid(row=0,column=1,rowspan=4,columnspan=15)
+        self.geometry.canvas.grid(row=0,column=1,rowspan=8,columnspan=15)
         self.setGraphics(self.geometry.canvas,self.geometry.values,self.geometry.lines,self.geometry.labels,self.geometry.acts) # initialize graphics
         
         print(self.geometry.values)
@@ -132,16 +144,11 @@ class MainWindow(Frame):
     def updateGraphics(self):
         self.resetGraphics()
         self.geometry.canvas = Canvas(self.parent,width=self.geometry.width,height=self.geometry.height,relief="sunken",borderwidth=1)
-        self.geometry.canvas.grid(row=0,column=1,rowspan=4,columnspan=15)
+        self.geometry.canvas.grid(row=0,column=1,rowspan=8,columnspan=15)
         self.setGraphics(self.geometry.canvas,self.geometry.values,self.geometry.lines,self.geometry.labels,self.geometry.acts)
             
     def resetGraphics(self):
         self.geometry.canvas.delete("all")
-        
-    def chooseActFunction(self, v):
-        print(v)
-        if v == 'step' or 'sigmoid' or 'tanh':
-            self.n.act=v
         
     def reInit(self):
         
@@ -200,6 +207,11 @@ def propagate(frame, canvas, entry):
             raise ValueError
     except ValueError:
         messagebox.showerror("", "Input vector has wrong size and/or non-numerical inputs.")
+        
+def chooseActFunction(n, v):
+    print(n.act)
+    if n.act == 'step' or 'sigmoid' or 'tanh':
+        n.act=v
             
 class NetworkGraphic(object):
 

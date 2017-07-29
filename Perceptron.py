@@ -56,7 +56,7 @@ class NN(object):
         for i in range(len(self.w)):
             allVals.append([]) # add a list to represent the activations for the next layer
             for j in range(len(self.w[i])):
-                a = sigmoid(np.dot(allVals[i],self.w[i][j])) # dot product of activations and weights for each neuron in layer
+                a = eval(self.act)(np.dot(allVals[i],self.w[i][j])) # dot product of activations and weights for each neuron in layer
                 allVals[i+1].append(a)
                 
             if i < len(self.w)-2:
@@ -97,6 +97,7 @@ class NN(object):
                 
                 for i in range(len(inputs)):
                     allOutputs.append(self.feedForward(inputs[i],True))
+                    print()
                     # print("Input vector: ", inputs[i])
                     # print("Target vector: ", targets[i])
                     allErrors.append(self.calculateErrors(allOutputs[i], inputs[i], targets[i]))
@@ -169,17 +170,21 @@ class NN(object):
             
     def updateWeights(self, out, errors):
         
+        '''
         print("")
         print("Errors: ",errors)
         print("")
+        '''
         
         for i in range(len(self.w[-1])): # for every output node
             for j in range(len(self.w[-1][i])):
                 
+                '''
                 print("Weight: ", self.w[-1][i][j])
                 print("Output: ", out[-2][j])
                 print("Error: ", errors[-1][i])
                 print("")
+                '''
                 
                 self.w[-1][i][j] += self.c * out[-2][j] * errors[-1][i]
                 
@@ -188,16 +193,19 @@ class NN(object):
                 for j in range(len(self.w[i])): # for each neuron:
                     for k in range(len(self.w[i][j])): # for each weight:
                         
+                        '''
                         print("Weight: ", self.w[i][j][k])
                         print("Output: ", out[i][k])
                         print("Errors ", errors[i][j])
                         print("")
+                        '''
                         
                         self.w[i][j][k] += self.c * out[i][k] * errors[i][j]
-                    print("")
-                
+                    # print("")
+                '''
         print("")
         print(self.w)
+        '''
              
 def deltaError(o, t): # output, target
     error = o*(1 - o)*(t - o)
@@ -210,7 +218,7 @@ def hiddenError(o, e):
 #
 # activation functions
 #
-                
+
 def generateData(n): # generates input/output pairs
 
     inputs = []
@@ -229,9 +237,9 @@ def generateData(n): # generates input/output pairs
         
         inputs.append([x,y])
         
-        if eval(parUpper):
+        if eval(circleUpper):
             labels.append([1]) # input, desired output
-        elif eval(parLower):
+        elif eval(circleLower):
             labels.append([0]) # input, desired output
             
     return [inputs,labels]
@@ -337,20 +345,19 @@ def softplus(finalSum): # soft rectilinear function
 def tanh(finalSum):
     return math.tanh(finalSum)
 
-
 def demo1(): # or table demonstration
     print("Nonlinear classification. Requires matplotlib.")
-    o=NN([2,8,1],act='sigmoid',c=0.03,bias=1.0)
+    o=NN([2,9,1],act='sigmoid',c=0.03,bias=1.0)
     print("Weights: ", o.getWeights())
     print("")
     
-    for a in range(0,20):
-        z=generateData(60)
+    for a in range(0,10):
+        z=generateData(150)
         inputs = z[0]
         labels = z[1]
         
         print("Training...")
-        for i in range(0,20):
+        for i in range(0,150):
             o.bp(inputs,labels)
 
     print("Weights: ", o.getWeights())
@@ -417,8 +424,8 @@ def demo4():
     print("")
     print("Weights: ", p.getWeights())
     print("")
-    for i in range(0,250):
-        p.bp([ [0.0,0.0], [1.0,0.0], [0.0,1.0], [1.0,1.0], ],([ [0], [1], [1], [0] ]))
+    for i in range(0,20000):
+        p.bp([ [0.0,0.0], [1.0,0.0], [0.0,1.0], [1.0,1.0] ], [ [0], [1], [1], [0] ] )
     print("")
     print("Weights: ", p.getWeights())
     print("")
@@ -427,6 +434,7 @@ def demo4():
     print("In: [0][1]. Out: ", p.feedForward([0.0,1.0]))
     print("In: [1][1]. Out: ", p.feedForward([1.0,1.0]))
     
+
 '''
 m=NN([2,3,2],c=1.0,bias=0.0)
 # m.w = [np.array( [ [ 0.1, 0.8, 0.0 ], [ 0.4, 0.6, 0.0] ] ), np.array( [ [ 0.3, 0.9 ] ] ) ]
