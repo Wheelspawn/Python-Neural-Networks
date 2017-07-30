@@ -96,7 +96,6 @@ class NN(object):
                 
                 for i in range(len(inputs)):
                     allOutputs.append(self.feedForward(inputs[i],True))
-                    print()
                     # print("Input vector: ", inputs[i])
                     # print("Target vector: ", targets[i])
                     allErrors.append(self.calculateErrors(allOutputs[i], inputs[i], targets[i]))

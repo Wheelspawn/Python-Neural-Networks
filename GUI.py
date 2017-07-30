@@ -254,6 +254,7 @@ class BackpropWindow(Frame):
         if self.inputs != None and self.targets != None:
             if int(epochNum) > 0:
                 for i in range(int(epochNum)):
+                    print(i)
                     self.network.bp(self.inputs, self.targets, bool(self.learnMode.get()))
                 print("Done")
             
