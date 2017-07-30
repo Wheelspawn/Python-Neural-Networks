@@ -21,7 +21,7 @@ class MainWindow(Frame):
         self.initUI()
         
     def initButtons(self):
-        titleTop = self.parent.title("Brainiac ANN Simulator 0.0.1")
+        titleTop = self.parent.title("Flyweight ANN Simulator 1.0.0")
         
         inputEntry = Entry(self.parent) # input values
         inputEntry.grid(row=0,column=0,padx=5,pady=5)
@@ -33,10 +33,10 @@ class MainWindow(Frame):
         backPropagation = Button(self.parent, text="Backpropagation", command=lambda: self.initBackpropWindow(Tk(), self.n)) # button that loads weights from (an undecided extension) file
         backPropagation.grid(row=2,column=0,padx=5,pady=5)
         
-        load = Button(self.parent, text="Load weights from CSV") # button that loads weights from (an undecided extension) file
+        load = Button(self.parent, text="Load weights from CSV", command=lambda: self.loadWeights()) # button that loads weights from (an undecided extension) file
         load.grid(row=3,column=0,padx=5,pady=5)
         
-        export = Button(self.parent, text="Export weights to CSV") # button that exports weights to (an undecided extension) file
+        export = Button(self.parent, text="Export weights to CSV", command=lambda: self.exportWeights()) # button that exports weights to (an undecided extension) file
         export.grid(row=4,column=0,pady=5)
         
         process = Button(self.parent, text="Process data and export to CSV") # button that exports weights to (an undecided extension) file
@@ -130,6 +130,7 @@ class MainWindow(Frame):
         
         self.popup = Menu(self.parent, tearoff=0)
         canvas.bind("<Button-3>", self.selector)
+        canvas.bind("<Button-1>", self.selector)
         
     def selector(self, e):
         
@@ -137,8 +138,9 @@ class MainWindow(Frame):
             for j in range(len(self.geometry.values[i])):
                 dist = math.sqrt( ( e.x-self.geometry.values[i][j].x )**2 + ( e.y-self.geometry.values[i][j].y )**2 )
                 if dist <= 15 and i != 0:
-                    self.popup.tk_popup(e.x_root,e.y_root,0)
-                    self.popup.add_command(label="Edit weights", command=self.initWeightWindow(Tk(), self.n.neuronWeights(i-1,j)))
+                    # self.popup.tk_popup(e.x_root,e.y_root,0)
+                    # self.popup.add_command(label="Edit weights", command=self.initWeightWindow(Tk(), self.n.neuronWeights(i-1,j)))
+                    self.initWeightWindow(Tk(), self.n.neuronWeights(i-1,j))
                     break
                 
     def initBackpropWindow(self,parent,n):
@@ -155,6 +157,17 @@ class MainWindow(Frame):
             
     def resetGraphics(self):
         self.geometry.canvas.delete("all")
+        
+    def exportWeights(self):
+        from tkinter import filedialog
+        g = filedialog.asksaveasfilename()
+        weightsToCsv(self.n.w, str(g))
+        
+    def loadWeights(self):
+        from tkinter import filedialog
+        g = filedialog.askopenfilename()
+        self.n.setWeights(csvToWeights(g))
+        self.updateGraphics()
         
     def reInit(self):
         
@@ -202,11 +215,12 @@ class WeightWindow(Frame):
             self.neuron[i] = self.entries[i].get()
             
 class BackpropWindow(Frame):
-    def __init__(self, parent, network, inputs=None, targets=None, epochNum=1):
+    def __init__(self, parent, network, inputs=None, targets=None, epochNum=1, noisy=False):
         Frame.__init__(self, parent)
 
         self.parent = parent
         self.network = network
+        self.noisy = noisy
         
         self.initUI()
         
@@ -232,30 +246,41 @@ class BackpropWindow(Frame):
         batch = Radiobutton(self.parent, text="Stochastic", variable=self.learnMode, value=0, command=lambda: self.learnMode.set(0))
         batch.grid(row=1,column=1,padx=5,pady=5)
         
+        noiseButton = Checkbutton(self.parent, text="Input noise", command=lambda:self.inputNoise())
+        noiseButton.grid(row=2,column=1,padx=5,pady=5)
+        
         backProp = Button(self.parent, text="Train", command=lambda:self.backProp(epochs.get()))
         backProp.grid(row=3,column=0,padx=15,pady=15)
         
-    def toggle(self):
-        print(self.learnMode.get())
+    def inputNoise(self):
+        self.noisy=not(self.noisy)
         
     def loadInputs(self):
         from tkinter import filedialog
         f = filedialog.askopenfilename()
         self.inputs = vectorsToArray(f)
-        print(self.inputs)
         
     def loadTargets(self):
         from tkinter import filedialog
         g = filedialog.askopenfilename()
         self.targets = vectorsToArray(g)
-        print(self.targets)
         
     def backProp(self, epochNum):
+        
         if self.inputs != None and self.targets != None:
             if int(epochNum) > 0:
+                inputCopy = self.inputs[:]
+                
                 for i in range(int(epochNum)):
-                    print(i)
-                    self.network.bp(self.inputs, self.targets, bool(self.learnMode.get()))
+                    
+                    if self.noisy==True:
+                        for j in range(len(inputCopy)):
+                            for k in range(len(inputCopy[j])):
+                                inputCopy[j][k] += round(random.gauss(0,0.01),4)
+                                
+                        print(i)
+                                
+                    self.network.bp(inputCopy, self.targets, bool(self.learnMode.get()))
                 print("Done")
             
 def propagate(frame, canvas, entry):
@@ -272,7 +297,6 @@ def propagate(frame, canvas, entry):
         messagebox.showerror("", "Input vector has wrong size and/or non-numerical inputs.")
         
 def chooseActFunction(n, v):
-    print(n.act)
     if n.act == 'step' or 'sigmoid' or 'tanh':
         n.act=v
             

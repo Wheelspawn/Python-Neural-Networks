@@ -39,13 +39,14 @@ class NN(object):
     def getWeights(self):
         return self.w
         
-    def setWeights(self,new):
-        for i in range(len(new)):
-            if len(new[i]) != self.l[i]: # if the new weight setup is different 
-                print("Warning! Network configuration is different than original specification. Continuing regardless...")
-                self.l[i] = len(new[i])
-                # self.l[i] = len(new[i]) # for making sure l is consistent with new weights
-        self.w = new
+    def setWeights(self,newW):
+        newL = [len(newW[0][0])-1]
+        print(newW[0][0])
+        for i in range(len(newW)):
+            newL.append(len(newW[i]))
+        
+        self.w=newW
+        self.l=newL
         
     def feedForward(self, inputs, brk=False): # the brk argument returns all the activations
         

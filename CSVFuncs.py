@@ -7,7 +7,6 @@ Created on Sat Jul 29 00:26:03 2017
 """
 
 import csv
-import pandas
 import numpy as np
 
 def csvToWeights(path):
@@ -22,6 +21,7 @@ def csvToWeights(path):
                 if p != []:
                     n.append(p)
             listy.append(np.array(n))
+        csvfile.close()
     return listy
 
 def weightsToCsv(weights, name):
@@ -30,6 +30,7 @@ def weightsToCsv(weights, name):
         print(weights)
         for row in weights:
             myWriter.writerow(row)
+        csvfile.close()
 
 def vectorsToArray(path):
     listy=[]
@@ -43,4 +44,5 @@ def vectorsToArray(path):
                 if p != []:
                     n.extend(p)
             listy.append(n)
+        csvfile.close()
     return listy
