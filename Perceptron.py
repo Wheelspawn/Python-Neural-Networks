@@ -86,7 +86,6 @@ class NN(object):
         return self.w[layer][index]
     
     def bp(self,inputs,targets,batch=True):
-        
         if len(inputs[0]) != self.l[0]: # cheap error handling printout, must fix later
             print("No-go. Length of input vectors must be equal to length of target vectors.")
             

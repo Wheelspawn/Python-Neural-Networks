@@ -6,6 +6,8 @@ import random
 from tkinter import *
 from tkinter.ttk import *
 
+from CSVFuncs import *
+
 class MainWindow(Frame):
 
     def __init__(self, parent, geometry=None, n=NN([2,9,8,1], act='sigmoid'), menus=[]):
@@ -73,7 +75,7 @@ class MainWindow(Frame):
         self.geometry.canvas.grid(row=0,column=1,rowspan=8,columnspan=15)
         self.setGraphics(self.geometry.canvas,self.geometry.values,self.geometry.lines,self.geometry.labels,self.geometry.acts) # initialize graphics
         
-        print(self.geometry.values)
+        # print(self.geometry.values)
 
     def setGraphics(self, canvas, values, lines, labels, acts):
         
@@ -200,41 +202,60 @@ class WeightWindow(Frame):
             self.neuron[i] = self.entries[i].get()
             
 class BackpropWindow(Frame):
-    def __init__(self, parent, neuron):
+    def __init__(self, parent, network, inputs=None, targets=None, epochNum=1):
         Frame.__init__(self, parent)
 
         self.parent = parent
-        self.neuron = neuron
+        self.network = network
         
         self.initUI()
         
     def initUI(self):
         titleTop = self.parent.title("Backpropagation")
     
-        uploadPairs = Button(self.parent, text="Upload CSV input pairs", command=lambda: self.load())
-        uploadPairs.grid(row=0,column=0,padx=15,pady=15)
+        uploadInputs = Button(self.parent, text="Upload CSV input pairs", command=lambda: self.loadInputs())
+        uploadInputs.grid(row=0,column=0,padx=15,pady=15)
         
-        uploadPairs = Button(self.parent, text="Upload CSV target pairs", command=lambda: self.load())
-        uploadPairs.grid(row=0,column=1,padx=15,pady=15)
+        uploadTargets = Button(self.parent, text="Upload CSV target pairs", command=lambda: self.loadTargets())
+        uploadTargets.grid(row=1,column=0,padx=15,pady=15)
         
         epochs = Entry(self.parent) # input values
-        epochs.grid(row=1,column=0,padx=5,pady=5)
+        epochs.grid(row=2,column=0,padx=5,pady=5)
         epochs.insert(0, "Number of epochs")
         
-        learn = IntVar()
+        self.learnMode = IntVar()
+        self.learnMode.set(1)
         
-        stochastic = Radiobutton(self.parent, text="Batch", variable=learn, value=1)
-        stochastic.grid(row=1,column=1,padx=5,pady=5)
+        stochastic = Radiobutton(self.parent, text="Batch", variable=self.learnMode, value=1, command=lambda: self.learnMode.set(1))
+        stochastic.grid(row=0,column=1,padx=5,pady=5)
         
-        batch = Radiobutton(self.parent, text="Stochastic", variable=learn, value=2)
-        batch.grid(row=2,column=1,padx=5,pady=5)
+        batch = Radiobutton(self.parent, text="Stochastic", variable=self.learnMode, value=0, command=lambda: self.learnMode.set(0))
+        batch.grid(row=1,column=1,padx=5,pady=5)
         
-        backProp = Button(self.parent, text="Train")
-        backProp.grid(row=2,column=0,padx=15,pady=15)
+        backProp = Button(self.parent, text="Train", command=lambda:self.backProp(epochs.get()))
+        backProp.grid(row=3,column=0,padx=15,pady=15)
         
-    def load(self):
+    def toggle(self):
+        print(self.learnMode.get())
+        
+    def loadInputs(self):
         from tkinter import filedialog
         f = filedialog.askopenfilename()
+        self.inputs = vectorsToArray(f)
+        print(self.inputs)
+        
+    def loadTargets(self):
+        from tkinter import filedialog
+        g = filedialog.askopenfilename()
+        self.targets = vectorsToArray(g)
+        print(self.targets)
+        
+    def backProp(self, epochNum):
+        if self.inputs != None and self.targets != None:
+            if int(epochNum) > 0:
+                for i in range(int(epochNum)):
+                    self.network.bp(self.inputs, self.targets, bool(self.learnMode.get()))
+                print("Done")
             
 def propagate(frame, canvas, entry):
     from tkinter import messagebox
