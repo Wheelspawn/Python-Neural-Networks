@@ -10,7 +10,7 @@ from CSVFuncs import *
 
 class MainWindow(Frame):
 
-    def __init__(self, parent, geometry=None, n=NN([2,9,8,1], act='sigmoid'), menus=[]):
+    def __init__(self, parent, geometry=None, n=NN([4,9,8,3], act='sigmoid'), menus=[]):
         Frame.__init__(self, parent)
 
         self.parent = parent
@@ -30,7 +30,7 @@ class MainWindow(Frame):
         leftButton = Button(self.parent, text="Feedforward", command=lambda: propagate(self, self.geometry.canvas, inputEntry.get())) # feedforward button
         leftButton.grid(row=1,column=0,pady=5)
         
-        backPropagation = Button(self.parent, text="Backpropagation", command=lambda: self.initBackpropWindow(Tk(), self.n)) # button that loads weights from (an undecided extension) file
+        backPropagation = Button(self.parent, text="Backpropagation", command=lambda: BackpropWindow(Tk(), self.n)) # button that loads weights from (an undecided extension) file
         backPropagation.grid(row=2,column=0,padx=5,pady=5)
         
         load = Button(self.parent, text="Load weights from CSV", command=lambda: self.loadWeights()) # button that loads weights from (an undecided extension) file
@@ -39,7 +39,7 @@ class MainWindow(Frame):
         export = Button(self.parent, text="Export weights to CSV", command=lambda: self.exportWeights()) # button that exports weights to (an undecided extension) file
         export.grid(row=4,column=0,pady=5)
         
-        process = Button(self.parent, text="Process data and export to CSV") # button that exports weights to (an undecided extension) file
+        process = Button(self.parent, text="Process data and export to CSV", command=lambda: ProcessWindow(Tk(), self.n)) # button that exports weights to (an undecided extension) file
         process.grid(row=5,column=0,padx=10,pady=5)
         
         recurrencies = Button(self.parent, text="Define recurrencies") # button that exports weights to (an undecided extension) file
@@ -142,9 +142,6 @@ class MainWindow(Frame):
                     # self.popup.add_command(label="Edit weights", command=self.initWeightWindow(Tk(), self.n.neuronWeights(i-1,j)))
                     self.initWeightWindow(Tk(), self.n.neuronWeights(i-1,j))
                     break
-                
-    def initBackpropWindow(self,parent,n):
-        BackpropWindow(parent,n)
                     
     def initWeightWindow(self,parent,neuron):
         WeightWindow(parent,neuron)
@@ -184,6 +181,47 @@ class MainWindow(Frame):
         self.geometry.acts=[]
         self.updateGraphics()
         
+class ProcessWindow(Frame):
+    def __init__(self, parent, network, data=None, processedData=None):
+        Frame.__init__(self, parent)
+
+        self.parent = parent
+        self.network = network
+        
+        self.initUI()
+        
+    def initUI(self):
+        title = self.parent.title("Process data")
+        
+        uploadInputs = Button(self.parent, text="Upload CSV input pairs", command=lambda: self.upload())
+        uploadInputs.grid(row=0,column=0,padx=15,pady=15)
+        
+        processButton = Button(self.parent, text="Process data", command=lambda: self.process())
+        processButton.grid(row=1,column=0,padx=15,pady=15)
+        
+        exportCSV = Button(self.parent, text="Export to CSV", command=lambda: self.export())
+        exportCSV.grid(row=2,column=0,padx=15,pady=15)
+        
+    def upload(self):
+        from tkinter import filedialog
+        f = filedialog.askopenfilename()
+        self.data = vectorsToArray(f)
+        print(self.data)
+        pass
+    
+    def process(self):
+        self.processedData=[]
+        for entry in self.data:
+            self.processedData.append(self.network.feedForward(entry))
+            for i in range(len(self.processedData[-1])):
+                self.processedData[-1][i] = round(self.processedData[-1][i],2)
+        pass
+    
+    def export(self):
+        from tkinter import filedialog
+        g = filedialog.asksaveasfilename()
+        weightsToCsv(self.processedData, str(g))
+        
 class WeightWindow(Frame):
     def __init__(self, parent, neuron, entries=[], labels=[]):
         Frame.__init__(self, parent)
@@ -196,7 +234,7 @@ class WeightWindow(Frame):
         self.initUI()
         
     def initUI(self):
-        titleTop = self.parent.title("Edit weights")        
+        title = self.parent.title("Edit weights")        
         
         for i in range(0,len(self.neuron)):
             self.entries.append(Entry(self.parent))
@@ -278,7 +316,7 @@ class BackpropWindow(Frame):
                             for k in range(len(inputCopy[j])):
                                 inputCopy[j][k] += round(random.gauss(0,0.01),4)
                                 
-                        print(i)
+                    print(i)
                                 
                     self.network.bp(inputCopy, self.targets, bool(self.learnMode.get()))
                 print("Done")
