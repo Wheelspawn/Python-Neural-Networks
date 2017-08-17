@@ -1,3 +1,4 @@
+
 from Perceptron import NN
 
 import math
@@ -21,7 +22,7 @@ class MainWindow(Frame):
         self.initUI()
         
     def initButtons(self):
-        titleTop = self.parent.title("Flyweight ANN Simulator 1.0.0")
+        titleTop = self.parent.title("Flyweight 1.0.0")
         
         inputEntry = Entry(self.parent) # input values
         inputEntry.grid(row=0,column=0,padx=5,pady=5)
@@ -106,7 +107,7 @@ class MainWindow(Frame):
                                                       outline="black",
                                                       fill=(("light gray") if (acts == [] or i==0) else hexConverter(acts[i][j], self.n.act)), # "light gray"
                                                       width=1))
-                labels[i].append(canvas.create_text(x+margin*layerDist[i],y+margin*networkDist[j],text="0.0" if acts == [] else round(acts[i][j],1))) # add labels for activations
+                labels[i].append(canvas.create_text(x+margin*layerDist[i],y+margin*networkDist[j],text="" if acts == [] else round(acts[i][j],1))) # add labels for activations
         
         
         for i in range(len(values)-1):
@@ -122,7 +123,7 @@ class MainWindow(Frame):
             lines.append(canvas.create_line((values[-1][i].x)+values[-1][i].r,values[-1][i].y,(values[-1][i].x)+(values[-1][i].r*2),values[-1][i].y))
             lines.append(canvas.create_line((values[-1][i].x)+(values[-1][i].r*2)-10,values[-1][i].y-3,(values[-1][i].x)+(values[-1][i].r*2),values[-1][i].y)) # right arrowhead
 
-            labels[-1].append(canvas.create_text((values[-1][i].x)+(values[-1][i].r*2)+radius,values[-1][i].y,text="0.0" if acts == [] else round(acts[-1][i],1)))
+            labels[-1].append(canvas.create_text((values[-1][i].x)+(values[-1][i].r*2)+radius,values[-1][i].y,text="" if acts == [] else round(acts[-1][i],1)))
             
         self.geometry.values = values
         self.geometry.labels = labels
