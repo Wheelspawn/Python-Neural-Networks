@@ -43,7 +43,7 @@ class MainWindow(Frame):
         process = Button(self.parent, text="Process data and export to CSV", command=lambda: ProcessWindow(Tk(), self.n)) # button that exports weights to (an undecided extension) file
         process.grid(row=5,column=0,padx=10,pady=5)
         
-        recurrencies = Button(self.parent, text="Define recurrencies") # button that exports weights to (an undecided extension) file
+        recurrencies = Button(self.parent, text="Recurrencies") # button that exports weights to (an undecided extension) file
         recurrencies.grid(row=6,column=0,pady=5)
         
         ticTacToe = Button(self.parent, text="Tic-tac-toe") # button that exports weights to (an undecided extension) file

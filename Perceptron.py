@@ -188,8 +188,8 @@ class NN(object):
                 last = self.w[-1][i][j]
                 
                 self.w[-1][i][j] += self.c * out[-2][j] * errors[-1][i] # update
-                print(last)
-                self.w[-1][i][j] += (1-sigmoid(last))*self.c*out[-2][j]*errors[-1][i]+(sigmoid(last)*last) # inertia term
+                # print(last)
+                # self.w[-1][i][j] += (1-sigmoid(last))*self.c*out[-2][j]*errors[-1][i]+(sigmoid(last)*last) # inertia term
                 
         if len(self.l) > 2: # if there are one or more hidden layers
             for i in range(len(self.w)-2,-1,-1): # for each layer
@@ -206,8 +206,8 @@ class NN(object):
                         last = self.w[i][j][k] # keeping the pre-update weight in memory for inertia term
                         
                         self.w[i][j][k] += self.c * out[i][k] * errors[i][j] # update
-                        print(last)
-                        self.w[i][j][k] += (1-sigmoid(last))*self.c*out[i][k]*errors[i][j]+(sigmoid(last)*last) # inertia term
+                        # print(last)
+                        # self.w[i][j][k] += (1-sigmoid(last))*self.c*out[i][k]*errors[i][j]+(sigmoid(last)*last) # inertia term
                         
                         
 def deltaError(o, t): # output, target
@@ -453,5 +453,3 @@ m.bp([[0.35,0.9]],[[0.5,0.5]])
 o=m.feedForward([0.35,0.9])
 print("New ouput: ", o)
 '''
-
-demo4()

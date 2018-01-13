@@ -1,7 +1,80 @@
 import random
+import copy
 import Perceptron as percept
-import _tkinter as tk
+from GameTree import Node
+import time
 
+def BuildGameTree():
+    l = []
+    b=Board()
+    b.board=[[0,0,0],[0,0,0],[0,0,0]]
+    
+    p = Node(element = [[0,0,0],[0,0,0],[0,0,0]])
+    Display(p.element)
+    BuildValidMoves(p)
+    
+    return p
+
+def BuildValidMoves(p): # build the valid children of each board configuration
+    turn = None # find out whose turn is it
+    if sum(p.element[0])+sum(p.element[1])+sum(p.element[2]) == 0:
+        turn = 1
+    else:
+        turn = -1
+        
+    counter = 0 # index of each board configuration in the tree
+    for i in range(3):
+        for j in range(3):
+            # p.setChild( Node( element = copy.deepcopy(p.element) ))
+            if p.element[i][j] == 0 and p.element[i][j] != None and Complete(p) == False: # a valid move
+                p.setChild( Node( element = copy.deepcopy(p.element) ))
+                p.children[counter].element[i][j] += turn
+                # Display(p.children[counter].element)
+                # time.sleep(0.1)
+                BuildValidMoves(p.children[counter])
+                
+            else:
+                p.setChild( Node (element=None) ) # not a valid move
+            counter += 1
+            # print(p.children[counter].element)
+            
+
+def Display(board): # displays the board
+    print(" -------------   \n | {} | {} | {} | \n -------------   \n | {} | {} | {} | \n -------------   \n | {} | {} | {} | \n ------------- "
+        .format(board[0][0], board[0][1], board[0][2],
+                board[1][0], board[1][1], board[1][2],
+                board[2][0], board[2][1], board[2][2]))
+
+
+def Complete(p):
+    board = p.element
+    completed_squares = 0
+    counter = 0
+    for i in range(3):
+        for j in range(3):
+            if p.element[i][j] != 0:
+                completed_squares += 1
+            counter += 1
+            
+    if completed_squares == 9:
+        return True
+    else:
+        if completed_squares > 4: # checking for a winner along the diagonal
+            if board[0][0] == board[1][1] == board[2][2] != 0 or board[0][2] == board[1][1] == board[2][0] != 0:
+                return True
+            
+            c=0
+            while c < 3: # checking for a winner along the horizontal and vertical
+                if board[c][0] == board[c][1] == board[c][2] != 0 or board[0][c] == board[1][c] == board[2][c] != 0:
+                    return True
+                
+                else:
+                    c+=1
+        else:
+            return False
+    
+    
+            
 class Board():
 
     conv = {-1:'o', 0:' ', 1:'x'} # dictionary that turns the integers into x and o
@@ -136,5 +209,6 @@ def Test():
     h=HumanPlayer(1)
     n=NeuralNetPlayer(-1,n)
     g=Board()
+    g.reset()
     g.display()
     PlayGame(h,n,g)
