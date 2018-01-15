@@ -17,37 +17,56 @@ def BuildGameTree():
 
 def BuildValidMoves(p): # build the valid children of each board configuration
     turn = None # find out whose turn is it
-    if sum(p.element[0])+sum(p.element[1])+sum(p.element[2]) == 0:
+    if sum(p.element[0])+sum(p.element[1])+sum(p.element[2]) == 0: # if x turn
         turn = 1
-    else:
+    else: # if o turn
         turn = -1
         
     counter = 0 # index of each board configuration in the tree
     for i in range(3):
         for j in range(3):
-            # p.setChild( Node( element = copy.deepcopy(p.element) ))
-            if p.element[i][j] == 0 and p.element[i][j] != None and Complete(p) == False: # a valid move
-                p.setChild( Node( element = copy.deepcopy(p.element) ))
-                p.children[counter].element[i][j] += turn
-                # Display(p.children[counter].element)
-                # time.sleep(0.1)
-                BuildValidMoves(p.children[counter])
+            if p.element[i][j] == 0 and p.element[i][j] != None and Complete(p) == False: # if the tile is unoccupied and the game is unresolved
+                p.setChild( Node( element = copy.deepcopy(p.element) )) # copy the state of the parent board
+                p.children[counter].element[i][j] += turn # add the next move
+                BuildValidMoves(p.children[counter]) # recursively build onto child
                 
             else:
                 p.setChild( Node (element=None) ) # not a valid move
             counter += 1
-            # print(p.children[counter].element)
-            
 
-def Display(board): # displays the board
+def MinMax(p):
+    minmax=[0,0,0,0,0,0,0,0,0]
+    for i in range(9):
+        # print("Children: ", p.Children()[i])
+        if p.Children()[i].element != None and p.Children()[i].Children != []:
+            minmax[i] += Winner(p.Children()[i])
+            # print(minmax)
+            # print("Depth: ", p.Children()[i].depth)
+            # print(minmax)
+            [x+y for x,y in zip(minmax,MinMax(p.Children()[i]))]
+            # minmax += MinMax(p.Children()[i])
+    return minmax
+
+def FlipBoard(p):
+    board = p.element
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == 1:
+                board[i][j] = -1
+            elif board[i][j] == -1:
+                board[i][j] = 1
+    p.element = board
+
+def Display(p): # displays the board
+    board = p.element
+    
     print(" -------------   \n | {} | {} | {} | \n -------------   \n | {} | {} | {} | \n -------------   \n | {} | {} | {} | \n ------------- "
         .format(board[0][0], board[0][1], board[0][2],
                 board[1][0], board[1][1], board[1][2],
                 board[2][0], board[2][1], board[2][2]))
 
 
-def Complete(p):
-    board = p.element
+def Complete(p): # checks for completion, by victory or by tie
     completed_squares = 0
     counter = 0
     for i in range(3):
@@ -56,22 +75,34 @@ def Complete(p):
                 completed_squares += 1
             counter += 1
             
-    if completed_squares == 9:
+    if completed_squares == 9: # if every position on the board is occupied
         return True
     else:
         if completed_squares > 4: # checking for a winner along the diagonal
-            if board[0][0] == board[1][1] == board[2][2] != 0 or board[0][2] == board[1][1] == board[2][0] != 0:
+            if Winner(p) == 0:
+                return False
+            else:
                 return True
-            
-            c=0
-            while c < 3: # checking for a winner along the horizontal and vertical
-                if board[c][0] == board[c][1] == board[c][2] != 0 or board[0][c] == board[1][c] == board[2][c] != 0:
-                    return True
-                
-                else:
-                    c+=1
         else:
             return False
+        
+def Winner(p): # tells the color of the winner
+    board = p.element
+    
+    if board == None:
+        return 0
+    else:
+        if board[0][0] == board[1][1] == board[2][2] != 0 or board[0][2] == board[1][1] == board[2][0] != 0:
+            return board[1][1]
+        
+        c=0
+        while c < 3: # checking for a winner along the horizontal and vertical
+            if board[c][0] == board[c][1] == board[c][2] != 0:
+                return board[c][1]
+            if board[0][c] == board[1][c] == board[2][c] != 0:
+                return board[1][c]
+            c += 1
+        return 0
     
     
             
@@ -212,3 +243,12 @@ def Test():
     g.reset()
     g.display()
     PlayGame(h,n,g)
+
+# p = Node(element = [[1,0,0],[0,0,0],[0,0,0]])
+p = Node(element = [[1,-1,1],[0,-1,0],[0,0,0]])
+print("Building game tree...")
+BuildValidMoves(p)
+print("Calculating minmax...")
+m=MinMax(p)
+Display(p)
+print(m)

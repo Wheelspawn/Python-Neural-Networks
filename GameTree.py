@@ -50,7 +50,7 @@ class Node(object):
     def updateNumChildren(self, p): # keeps number of children updated
         self.numChildren += p
         
-    def PreOrderTraversal(self): # pre-order traversal
+    def DFS(self, board): # pre-order DFS
         t = []
         if self.hasChildren == False: # end of tree
             return [self]
@@ -58,28 +58,6 @@ class Node(object):
             t.append(self) # add node before children have been visited
             for c in self.children:
                 t.extend(c.PreOrderTraversal()) # recursively visit each child
-            return t
-
-    def InOrderTraversal(self):
-        t = []
-        if self.hasChildren == False: # end of tree
-            return [self]
-        else:
-            for c in self.children: # recursively visit each child
-                if (self in t):
-                    t.extend(c.InOrderTraversal()) # recursively visit each child
-                else:
-                    t.extend(c.InOrderTraversal()+[self]) # visit the parent node at end of recursion
-            return t
-
-    def PostOrderTraversal(self): # post-order traversal
-        t = []
-        if self.hasChildren == False: # end of tree
-            return [self]
-        else:
-            for c in self.children:
-                t.extend(c.PostOrderTraversal()) # recursively visit each child
-            t.append(self) # add node after children have been visited
             return t
 
     def BFS(self, d=1): # breadth-first traversal
