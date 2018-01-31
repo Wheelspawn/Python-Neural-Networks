@@ -5,15 +5,13 @@ from GameTree import Node
 import time
 
 def BuildGameTree():
-    l = []
+    
     b=Board()
     b.board=[[0,0,0],[0,0,0],[0,0,0]]
     
     p = Node(element = [[0,0,0],[0,0,0],[0,0,0]])
     Display(p.element)
     BuildValidMoves(p)
-    
-    return p
 
 def BuildValidMoves(p): # build the valid children of each board configuration
     turn = None # find out whose turn is it
@@ -25,7 +23,7 @@ def BuildValidMoves(p): # build the valid children of each board configuration
     counter = 0 # index of each board configuration in the tree
     for i in range(3):
         for j in range(3):
-            if p.element[i][j] == 0 and p.element[i][j] != None and Complete(p) == False: # if the tile is unoccupied and the game is unresolved
+            if p.element[i][j] == 0 and p.element[i][j] != None and Complete(p.element) == False: # if the tile is unoccupied and the game is unresolved
                 p.setChild( Node( element = copy.deepcopy(p.element) )) # copy the state of the parent board
                 p.children[counter].element[i][j] += turn # add the next move
                 BuildValidMoves(p.children[counter]) # recursively build onto child
@@ -35,27 +33,28 @@ def BuildValidMoves(p): # build the valid children of each board configuration
             counter += 1
 
 def MinMax(p):
-    minmax=[0,0,0,0,0,0,0,0,0]
+    # minmax=[0,0,0,0,0,0,0,0,0]
     for i in range(9):
-        # print("Children: ", p.Children()[i])
         if p.Children()[i].element != None and p.Children()[i].Children != []:
-            minmax[i] += Winner(p.Children()[i])
-            # print(minmax)
-            # print("Depth: ", p.Children()[i].depth)
-            # print(minmax)
-            [x+y for x,y in zip(minmax,MinMax(p.Children()[i]))]
-            # minmax += MinMax(p.Children()[i])
-    return minmax
+            # minmax[i] += Winner(p.Children()[i].element)
+            GimmeThePoints(p.Children()[i], i, Winner(p.Children()[i].element))
+            # [x+y for x,y in zip(minmax,MinMax(p.Children()[i]))]
+    # return minmax
 
-def FlipBoard(p):
-    board = p.element
+def GimmeThePoints(p, i, winner): # do we need this?
+    p.util[i] += 1 if winner==1 else -1 if winner==-1 else 0
+    
+    if p.parent != None:
+        GimmeThePoints(p.parent, i, winner)
+
+def FlipBoard(board):
     for i in range(3):
         for j in range(3):
             if board[i][j] == 1:
                 board[i][j] = -1
             elif board[i][j] == -1:
                 board[i][j] = 1
-    p.element = board
+    return board
 
 def Display(p): # displays the board
     board = p.element
@@ -66,12 +65,12 @@ def Display(p): # displays the board
                 board[2][0], board[2][1], board[2][2]))
 
 
-def Complete(p): # checks for completion, by victory or by tie
+def Complete(board): # checks for completion, by victory or by tie
     completed_squares = 0
     counter = 0
     for i in range(3):
         for j in range(3):
-            if p.element[i][j] != 0:
+            if board[i][j] != 0:
                 completed_squares += 1
             counter += 1
             
@@ -79,15 +78,14 @@ def Complete(p): # checks for completion, by victory or by tie
         return True
     else:
         if completed_squares > 4: # checking for a winner along the diagonal
-            if Winner(p) == 0:
+            if Winner(board) == 0:
                 return False
             else:
                 return True
         else:
             return False
         
-def Winner(p): # tells the color of the winner
-    board = p.element
+def Winner(board): # tells the color of the winner
     
     if board == None:
         return 0
@@ -180,12 +178,38 @@ class HumanPlayer():
         else:
             g.winner=0
 
+# x's job is to pick the highest scoring move (max)
+# y's job is to pick the lowest scoring move (min)
+
 class PerfectPlayer():
-    def __init__(self, side=None):
+    def __init__(self, side=None, curr_pos=None):
         self.side=side
+        # self.tree=tree
+        self.curr_pos = curr_pos
 
     def move(self,g):
-        print("n/a")
+                
+        prev_b = self.curr_pos.element
+        print(self.curr_pos)
+        new_b = []
+        
+        for i in range(len(g.board)):
+            for j in range(len(g.board[i])):
+                new_b.append(g.board[i][j])
+        
+        p=[abs(prev_b-new_b) for prev_b,new_b in zip(prev_b,new_b)]
+        print(p)
+        if self.side == -1: # playing x
+            if prev_b[p.index(max(p))] != 0:
+                prev_b[p.index(max(p))] -= 1
+                self.curr_pos = self.curr_pos.Children()[p.index(max(p))]
+            else:
+                p[p.index(min(p))] += 1000
+                self.move(g)
+            # something max goes here
+            pass
+        else: # playing o
+            pass
 
 class NeuralNetPlayer():
     def __init__(self, side=None, n=None):
@@ -235,20 +259,35 @@ def PlayGame(p1,p2,g):
         else:
             break
 
-def Test():
-    n = percept.NN([9,10,10,10,10,9])
-    h=HumanPlayer(1)
-    n=NeuralNetPlayer(-1,n)
-    g=Board()
-    g.reset()
-    g.display()
-    PlayGame(h,n,g)
-
-# p = Node(element = [[1,0,0],[0,0,0],[0,0,0]])
-p = Node(element = [[1,-1,1],[0,-1,0],[0,0,0]])
+# def Test():
+    # n = percept.NN([9,10,10,10,10,9])
+    
+p = Node(element = [[0,0,0],[0,0,0],[0,0,0]])
 print("Building game tree...")
 BuildValidMoves(p)
-print("Calculating minmax...")
+MinMax(p)
+h=HumanPlayer(1)
+n=PerfectPlayer(-1,p)
+print(type(p))
+g=Board()
+g.reset()
+g.display()
+PlayGame(h,n,g) # player is currently going first
+
+'''
+then = time.time()
+p = Node(element = [[0,0,0],[0,0,0],[0,0,0]])
+# p = Node(element = [[1,-1,1],[1,-1,0],[-1,0,0]])
+# g = Node(element = [[-1,1,-1],[-1,1,0],[1,0,0]])
+print("Building game tree...")
+BuildValidMoves(p)
+# BuildValidMoves(g)
+print("Calculating minmax assignments...")
 m=MinMax(p)
 Display(p)
 print(m)
+now = time.time()
+print("Time elapsed: ", now-then)
+'''
+# 
+# print(MinMax(g))

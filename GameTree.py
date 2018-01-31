@@ -4,13 +4,20 @@
 #
 
 class Node(object):
-    def __init__(self, element=None, parent=None, children=[], hasChildren=False, numChildren=0, depth=0):
+    def __init__(self,   element=None, # the board layout
+                         parent=None,
+                         children=[],
+                         hasChildren=False,
+                         numChildren=0,
+                         depth=0,
+                         util=[0,0,0,0,0,0,0,0,0]): # utility of the next move
         self.element = element # generic value associated with the node
         self.parent = parent
         self.children = children
         self.hasChildren = hasChildren
         self.numChildren = numChildren
         self.depth = depth
+        self.util=[0,0,0,0,0,0,0,0,0]
 
     def setChild(self, c): # adds a child
         if type(c) == Node:

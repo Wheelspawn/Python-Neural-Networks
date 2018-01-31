@@ -1,0 +1,107 @@
+[1mdiff --git a/hw2/hw_2.py b/hw2/hw_2.py[m
+[1mindex 00b4ade..43deb61 100644[m
+[1m--- a/hw2/hw_2.py[m
+[1m+++ b/hw2/hw_2.py[m
+[36m@@ -1,51 +1,51 @@[m
+[31m-# -*- coding: utf-8 -*-[m
+[31m-"""[m
+[31m-Spyder Editor[m
+[31m-[m
+[31m-This is a temporary script file.[m
+[31m-"""[m
+[31m-[m
+[31m-import numpy as np[m
+[31m-import pylab[m
+[31m-[m
+[31m-#find the current hour[m
+[31m-from datetime import datetime[m
+[31m-now = datetime.now()[m
+[31m-Lt = now.hour[m
+[31m-[m
+[31m-#use the latitude for Omaha,NE as given[m
+[31m-latitude = np.deg2rad(41.15)[m
+[31m-[m
+[31m-global s_0[m
+[31m-s_0 = 1368.0[m
+[31m-[m
+[31m-year = 2457755.0[m
+[31m-year2 = 2458119.0[m
+[31m-[m
+[31m-def solarIrradiance(day):[m
+[31m-    global s_0[m
+[31m-    sun_earth_ratio = 1.0 + 0.034 * np.cos(((day-3.0)/(365.0))*2*np.pi)[m
+[31m-    declination_angle = np.deg2rad(-23.45)*np.cos((day+ 10.)/365*2*np.pi)[m
+[31m-    hour_angle = (2*np.pi/(24*3600))*(Lt-12*3600.)[m
+[31m-    cos_theta = np.cos(latitude)*np.cos(declination_angle)*np.cos(hour_angle) + np.sin(declination_angle)*np.sin(latitude)[m
+[31m-    f = s_0*sun_earth_ratio*cos_theta[m
+[31m-    return f[m
+[31m-[m
+[31m-[m
+[31m-yearX = [][m
+[31m-yearY = [][m
+[31m-[m
+[31m-const = 4000.0[m
+[31m-[m
+[31m-for i in range(0,365):[m
+[31m-    yearX.append(i)[m
+[31m-    yearY.append(solarIrradiance(year+i))[m
+[31m-    [m
+[31m-pylab.plot(yearX,yearY)[m
+[31m-pylab.xlim(0,365)[m
+[31m-pylab.ylim(-2000,0)[m
+[31m-pylab.xlabel('Time(Days)')[m
+[31m-pylab.ylabel('Irradiance(W/m^2)')[m
+[31m-pylab.show()[m
+[31m-[m
+[32m+[m[32m# -*- coding: utf-8 -*-[m[41m[m
+[32m+[m[32m"""[m[41m[m
+[32m+[m[32mSpyder Editor[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mThis is a temporary script file.[m[41m[m
+[32m+[m[32m"""[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mimport numpy as np[m[41m[m
+[32m+[m[32mimport pylab[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m#find the current hour[m[41m[m
+[32m+[m[32mfrom datetime import datetime[m[41m[m
+[32m+[m[32mnow = datetime.now()[m[41m[m
+[32m+[m[32mLt = now.hour[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m#use the latitude for Omaha,NE as given[m[41m[m
+[32m+[m[32mlatitude = np.deg2rad(41.15)[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mglobal s_0[m[41m[m
+[32m+[m[32ms_0 = 1368.0[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32myear = 2457755.0[m[41m[m
+[32m+[m[32myear2 = 2458119.0[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mdef solarIrradiance(day):[m[41m[m
+[32m+[m[32m    global s_0[m[41m[m
+[32m+[m[32m    sun_earth_ratio = 1.0 + 0.034 * np.cos(((day-3.0)/(365.0))*2*np.pi)[m[41m[m
+[32m+[m[32m    declination_angle = np.deg2rad(-23.45)*np.cos((day+ 10.)/365*2*np.pi)[m[41m[m
+[32m+[m[32m    hour_angle = (2*np.pi/(24*3600))*(Lt-12*3600.)[m[41m[m
+[32m+[m[32m    cos_theta = np.cos(latitude)*np.cos(declination_angle)*np.cos(hour_angle) + np.sin(declination_angle)*np.sin(latitude)[m[41m[m
+[32m+[m[32m    f = s_0*sun_earth_ratio*cos_theta[m[41m[m
+[32m+[m[32m    return f[m[41m[m
+[32m+[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32myearX = [][m[41m[m
+[32m+[m[32myearY = [][m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mconst = 4000.0[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mfor i in range(0,365):[m[41m[m
+[32m+[m[32m    yearX.append(i)[m[41m[m
+[32m+[m[32m    yearY.append(solarIrradiance(year+i))[m[41m[m
+[32m+[m[41m    [m
+[32m+[m[32mpylab.plot(yearX,yearY)[m[41m[m
+[32m+[m[32mpylab.xlim(0,365)[m[41m[m
+[32m+[m[32mpylab.ylim(-2000,0)[m[41m[m
+[32m+[m[32mpylab.xlabel('Time(Days)')[m[41m[m
+[32m+[m[32mpylab.ylabel('Irradiance(W/m^2)')[m[41m[m
+[32m+[m[32mpylab.show()[m[41m[m
+[32m+[m[41m[m
+ print('done')[m
+\ No newline at end of file[m

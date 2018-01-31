@@ -46,7 +46,7 @@ class MainWindow(Frame):
         recurrencies = Button(self.parent, text="Recurrencies") # button that exports weights to (an undecided extension) file
         recurrencies.grid(row=6,column=0,pady=5)
         
-        ticTacToe = Button(self.parent, text="Tic-tac-toe") # button that exports weights to (an undecided extension) file
+        ticTacToe = Button(self.parent, text="Play tic-tac-toe!") # button that exports weights to (an undecided extension) file
         ticTacToe.grid(row=7,column=0,pady=5)
         
         layerOptions=["","0","1","2","3","4","5","6","7","8","9","10","11","12"] # max number of neurons in a layer is 12
