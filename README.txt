@@ -6,7 +6,7 @@ Initialize a neural network by calling:
 
 n = NN([3,8,7,2,1], act='sigmoid', c=0.03, bias=1)
 
-The 0th value is the input, the 1st value is the 1st hidden layer, etc.
+The 0th value of the list is the number of inputs, the 1st value is the 1st hidden layer, etc.
 
 act is the activation function. Choices include:
  - 'step' (stepwise function)
