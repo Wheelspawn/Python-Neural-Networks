@@ -86,6 +86,12 @@ class Node(object):
         else:
             return False
         
+    def isLeaf(self):
+        for i in range(len(self.Children())):
+            if self.Children()[i].element != None:
+                return False
+        return True
+        
     def __repr__(self):
         return str(self)
 

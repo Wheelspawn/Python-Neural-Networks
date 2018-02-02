@@ -35,11 +35,13 @@ def BuildValidMoves(p): # build the valid children of each board configuration
 def MinMax(p):
     # minmax=[0,0,0,0,0,0,0,0,0]
     for i in range(9):
-        if p.Children()[i].element != None and p.Children()[i].Children != []:
+        if p.Children()[i].isLeaf():
             # minmax[i] += Winner(p.Children()[i].element)
             GimmeThePoints(p.Children()[i], i, Winner(p.Children()[i].element))
             # [x+y for x,y in zip(minmax,MinMax(p.Children()[i]))]
-    # return minmax
+        else:
+            MinMax(p.Children()[i])
+    return p
 
 def GimmeThePoints(p, i, winner): # do we need this?
     p.util[i] += 1 if winner==1 else -1 if winner==-1 else 0
@@ -188,28 +190,40 @@ class PerfectPlayer():
         self.curr_pos = curr_pos
 
     def move(self,g):
-                
-        prev_b = self.curr_pos.element
+        
         print(self.curr_pos)
+        
+        prev_b = self.curr_pos.element
+        prev_b = prev_b[0] + prev_b[1] + prev_b[2]
         new_b = []
         
         for i in range(len(g.board)):
             for j in range(len(g.board[i])):
                 new_b.append(g.board[i][j])
+                
+        print(prev_b)
+        print(new_b)
         
         p=[abs(prev_b-new_b) for prev_b,new_b in zip(prev_b,new_b)]
         print(p)
-        if self.side == -1: # playing x
-            if prev_b[p.index(max(p))] != 0:
-                prev_b[p.index(max(p))] -= 1
-                self.curr_pos = self.curr_pos.Children()[p.index(max(p))]
-            else:
-                p[p.index(min(p))] += 1000
-                self.move(g)
-            # something max goes here
-            pass
-        else: # playing o
-            pass
+        
+        
+        self.curr_pos = self.curr_pos.Children()[p.index(max(p))]
+        
+        print(self.curr_pos)
+        print(self.curr_pos.util)
+        
+        
+        if self.side == -1: # playing o
+            next_move = self.curr_pos.util.index(max(self.curr_pos.util))
+            g.add(-1,next_move+1)
+            self.curr_pos = self.curr_pos.Children()[next_move]
+            
+        elif self.side == 1:
+            next_move = self.curr_pos.util.index(max(self.curr_pos.util))
+            g.add(1,next_move+1)
+            self.curr_pos = self.curr_pos.Children()[next_move]
+            
 
 class NeuralNetPlayer():
     def __init__(self, side=None, n=None):
@@ -264,8 +278,12 @@ def PlayGame(p1,p2,g):
     
 p = Node(element = [[0,0,0],[0,0,0],[0,0,0]])
 print("Building game tree...")
+t_1=time.time()
 BuildValidMoves(p)
-MinMax(p)
+t_2=time.time()
+print("Time (s): ", t_2-t_1)
+p=MinMax(p)
+
 h=HumanPlayer(1)
 n=PerfectPlayer(-1,p)
 print(type(p))
@@ -273,6 +291,7 @@ g=Board()
 g.reset()
 g.display()
 PlayGame(h,n,g) # player is currently going first
+
 
 '''
 then = time.time()
