@@ -207,22 +207,32 @@ class PerfectPlayer():
         p=[abs(prev_b-new_b) for prev_b,new_b in zip(prev_b,new_b)]
         print(p)
         
-        
         self.curr_pos = self.curr_pos.Children()[p.index(max(p))]
         
         print(self.curr_pos)
         print(self.curr_pos.util)
         
+        util = self.curr_pos.util[:] # utility we are considering
         
-        if self.side == -1: # playing o
-            next_move = self.curr_pos.util.index(max(self.curr_pos.util))
-            g.add(-1,next_move+1)
-            self.curr_pos = self.curr_pos.Children()[next_move]
+        while sum(util) != 0:
             
-        elif self.side == 1:
-            next_move = self.curr_pos.util.index(max(self.curr_pos.util))
-            g.add(1,next_move+1)
-            self.curr_pos = self.curr_pos.Children()[next_move]
+            if prev_b[util.index(max(util))] == 0:
+                next_move = util.index(max(util))
+            
+                if self.side == -1: # playing o
+                    g.add(-1,next_move+1)
+                    print("Move: ", next_move)
+                    print("Pos: ", self.curr_pos.Children())
+                    self.curr_pos = self.curr_pos.Children()[next_move]
+                    
+                elif self.side == 1:
+                    g.add(1,next_move+1)
+                    self.curr_pos = self.curr_pos.Children()[next_move]
+                    
+                # self.curr_pos = self.curr_pos.Children()[p.index(max(p))]
+                    
+            else:
+                util[util.index(max(util))] = 0
             
 
 class NeuralNetPlayer():

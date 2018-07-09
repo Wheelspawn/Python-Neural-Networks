@@ -7,7 +7,7 @@ import random
 from tkinter import *
 from tkinter.ttk import *
 
-from CSVFuncs import *
+from HDFFuncs import *
 
 class MainWindow(Frame):
 
@@ -22,7 +22,7 @@ class MainWindow(Frame):
         self.initUI()
         
     def initButtons(self):
-        titleTop = self.parent.title("Flyweight 1.0.0")
+        titleTop = self.parent.title("Marionette 1.0.0")
         
         inputEntry = Entry(self.parent) # input values
         inputEntry.grid(row=0,column=0,padx=5,pady=5)
@@ -60,7 +60,7 @@ class MainWindow(Frame):
         var2 = StringVar(self)
         var2.set("sigmoid")
         
-        actFunction = OptionMenu(self.parent, var2, "", "sigmoid", "tanh", "step", command=lambda x: chooseActFunction(self.n, var2.get())) # optionmenu to set the activation function
+        actFunction = OptionMenu(self.parent, var2, "", "sigmoid", "tanh", "step", "rect", "softplus", "linear", command=lambda x: chooseActFunction(self.n, var2.get())) # optionmenu to set the activation function
         actFunction.grid(row=9,column=12)
         
         bottomButton = Button(self.parent, text="Reinitialize", command=self.reInit) # reinitializes network based on parameters given by user (or by default)
@@ -159,12 +159,12 @@ class MainWindow(Frame):
     def exportWeights(self):
         from tkinter import filedialog
         g = filedialog.asksaveasfilename()
-        weightsToCsv(self.n.w, str(g))
+        weightsToHDF(self.n.w, str(g))
         
     def loadWeights(self):
         from tkinter import filedialog
         g = filedialog.askopenfilename()
-        self.n.setWeights(csvToWeights(g))
+        self.n.setWeights(hdfToWeights(g))
         self.updateGraphics()
         
     def reInit(self):
@@ -221,7 +221,7 @@ class ProcessWindow(Frame):
     def export(self):
         from tkinter import filedialog
         g = filedialog.asksaveasfilename()
-        weightsToCsv(self.processedData, str(g))
+        weightsToHDF(self.processedData, str(g))
         
 class WeightWindow(Frame):
     def __init__(self, parent, neuron, entries=[], labels=[]):
@@ -381,7 +381,18 @@ def hexConverter(a, func):
         return stepToHex(a)
     elif func == 'tanh':
         return tanhToHex(a)
-        
+    elif (func == 'rect') or (func == 'softplus'):
+        return sigmoidToHex(boundRect(a))
+    elif func == 'linear':
+        return sigmoidToHex(sigmoid(a))
+
+# turns rectilinear and softmax values >= 0 into a nice number between 0 and 1
+def boundRect(a):
+    if a <= 0:
+        return 0
+    else:
+        return -1/(np.sqrt(a)+1)+1
+
 def distances(l,offset=0): # l = [ l_1, l_2, l_3, ... l_n ]
     if len(l) == 2:
         return [-1+offset,1-offset]

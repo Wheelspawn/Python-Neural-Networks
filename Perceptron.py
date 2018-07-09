@@ -35,17 +35,19 @@ class NN(object):
             # print(bit)
             n = 2*np.random.random_sample((self.l[i+1],self.l[i]+bit))-1 # weights are initialized to random values between -1 and 1. Add an extra weight for hidden layer bias node
             self.w.append(n)
+        # print(np.array(self.w))
+        self.w=np.array(self.w)
                 
     def getWeights(self):
         return self.w
         
     def setWeights(self,newW):
+        
         newL = [len(newW[0][0])-1]
-        print(newW[0][0])
         for i in range(len(newW)):
             newL.append(len(newW[i]))
         
-        self.w=newW
+        self.w=np.array(newW)
         self.l=newL
         
     def feedForward(self, inputs, brk=False): # the brk argument returns all the activations
@@ -64,9 +66,9 @@ class NN(object):
                 allVals[i+1].append(self.bias) # we must add the bias as the last activation for each layer, for all but the output node and final activations
                 
         if brk==False:
-            return allVals[-1]
+            return np.array(allVals[-1])
         else:
-            return allVals
+            return np.array(allVals)
         
         '''
         try:
@@ -88,7 +90,10 @@ class NN(object):
     
     def bp(self,inputs,targets,batch=True):
         if len(inputs[0]) != self.l[0]: # cheap error handling printout, must fix later
+            print(inputs[0])
+            print(self.l[0])
             print("No-go. Length of input vectors must be equal to length of target vectors.")
+            return
             
         else:
             if batch==True:
@@ -97,8 +102,6 @@ class NN(object):
                 
                 for i in range(len(inputs)):
                     allOutputs.append(self.feedForward(inputs[i],True))
-                    # print("Input vector: ", inputs[i])
-                    # print("Target vector: ", targets[i])
                     allErrors.append(self.calculateErrors(allOutputs[i], inputs[i], targets[i]))
                     
                 for i in range(len(allErrors)):
@@ -112,33 +115,12 @@ class NN(object):
         
         errors = [[]]
         
-        # inputVec = errors[0], I think???
-        
-        # print("")
-        # print("Output layer")
-        # print("")
-        
         for i in range(len(self.w[-1])): # for every output node
+            
             
             d = deltaError(out[-1][i], targetVec[i]) # calculate error
             
-            # for j in range(len(self.w[-1][i])):
-                
-                # print("Weight: ", self.w[-1][i][j])
-                # print("Output: ", out[-2][j])
-                # print("Delta: ", d)
-        
-                # self.w[-1][i][j] += self.c * out[-2][j] * d
-                
-                # print("Final: ", self.w[-1][i][j])
-            
             errors[0].append(d)
-            
-        # print("Output errors: ", errors)
-        
-        # print("")
-        # print("Hidden layer")
-        # print("")
         
         if len(self.l) > 2: # if there are one or more hidden layers
             for i in range(len(self.w)-2,-1,-1): # for each layer
@@ -150,21 +132,14 @@ class NN(object):
                     
                     error = 0
                     for k in range(len(self.w[i+1])):
-                        # print("Weight: ", self.neuronWeights(i+1,k)[j])
-                        # print("Prev error: ", errors)
                         
                         a.append(self.neuronWeights(i+1,k)[j])
                         b.append(errors[1][k])
                         
                         error += self.neuronWeights(i+1,k)[j] * errors[1][k]
-                    
-                    # print("i, j error: ")
-                    # print(a)
-                    # print(b)
-                    # print("Output: ", out[i+1][j])
+                        
                     errors[0].append(hiddenError(out[i+1][j], error))
                 
-        # print("Final errors: ", errors)
         return errors
             
     def updateWeights(self, out, errors):
@@ -208,7 +183,16 @@ class NN(object):
                         self.w[i][j][k] += self.c * out[i][k] * errors[i][j] # update
                         # print(last)
                         # self.w[i][j][k] += (1-sigmoid(last))*self.c*out[i][k]*errors[i][j]+(sigmoid(last)*last) # inertia term
-                        
+    
+    def hebbian(self, inputs):
+        o = self.feedForward(inputs,brk=True);
+        for i in range(1,len(o)-1):
+            for j in range(len(o[i])):
+                print("i,j: ", i,",",j)
+                print(self.w[i][j])
+                print(o[i][j])
+                print("fuck you")
+                self.w[i][j] *= (1+self.c) * o[i][j]
                         
 def deltaError(o, t): # output, target
     error = o*(1 - o)*(t - o)
@@ -344,9 +328,56 @@ def rect(finalSum): # rectilinear function.
         
 def softplus(finalSum): # soft rectilinear function
     return math.log(1+math.e**finalSum)
+
+def linear(finalSum):
+    return finalSum
     
 def tanh(finalSum):
     return math.tanh(finalSum)
+
+global d
+d = 1.0
+
+def decayer(i):
+    global d
+    
+    d = d*0.99
+    
+    if d <= i:
+        return d
+    else:
+        return i*d
+
+def oneHot(v):
+    c = [decayer(i) if i==max(v) else 0.1 for i in v]
+    return c
+
+def euclidDist(a,b):
+    from scipy.spatial.distance import euclidean
+    z = euclidean(a,b)
+    return z
+
+ # returns an array of euclidean distances between the second to last output and the output weights
+def outputEuclids(o,w):
+    r=[]
+    
+    for weights in w[-1]:
+        r.append(euclidDist(o[-2],weights))
+    return r
+
+# converts the result of outputEuclids into the values to be backpropagated
+def unsupervisedVec(o,w):
+    z = np.argmax(o)
+    u = np.zeros(len(o))
+    for i in range(len(o)):
+        u[i] = np.random.uniform(0,max(o[z]-0.25,0))
+        # u.append(1/(4**z[i]))
+    u[z] = 1
+        
+    return u
+
+def circleGen(xMed, yMed, stdev):
+    return [random.gauss(xMed,stdev),random.gauss(yMed,stdev)]
 
 def demo1(): # or table demonstration
     print("Nonlinear classification. Requires matplotlib.")
@@ -440,16 +471,141 @@ def demo4():
     print("In: [1][0]. Out: ", p.feedForward([1.0,0.0]))
     print("In: [0][1]. Out: ", p.feedForward([0.0,1.0]))
     print("In: [1][1]. Out: ", p.feedForward([1.0,1.0]))
-    
 
 '''
-m=NN([2,3,2],c=1.0,bias=0.0)
-# m.w = [np.array( [ [ 0.1, 0.8, 0.0 ], [ 0.4, 0.6, 0.0] ] ), np.array( [ [ 0.3, 0.9 ] ] ) ]
-print("Weights: ", m.w)
+setosa = [ [ 5.1, 3.5, 1.4, 0.2 ],
+            [ 4.9, 3, 1.4, 0.2 ],
+            [ 4.7, 3.2, 1.3, 0.2 ],
+            [ 4.6, 3.1, 1.5, 0.2 ],
+            [ 5, 3.6, 1.4, 0.3 ],
+            [ 5.4, 3.9, 1.7, 0.4 ],
+            [ 4.6, 3.4, 1.4, 0.3 ],
+            [ 5, 3.4, 1.5, 0.2 ],
+            [ 4.4, 2.9, 1.4, 0.2 ],
+            [ 4.9, 3.1, 1.5, 0.1 ],
+            [ 5.4, 3.7, 1.5, 0.2 ],
+            [ 4.8, 3.4, 1.6, 0.2 ],
+            [ 4.8, 3, 1.4, 0.1 ],
+            [ 4.3, 3, 1.1, 0.1 ],
+            [ 5.8, 4, 1.2, 0.2 ],
+            [ 5.7, 4.4, 1.5, 0.4 ],
+            [ 5.4, 3.9, 1.3, 0.4 ],
+            [ 5.1, 3.5, 1.4, 0.3 ],
+            [ 5.7, 3.8, 1.7, 0.3 ],
+            [ 5.1, 3.8, 1.5, 0.3 ],
+            [ 5.4, 3.4, 1.7, 0.2 ],
+            [ 5.1, 3.7, 1.5, 0.4 ],
+            [ 4.6, 3.6, 1, 0.2 ],
+            [ 5.1, 3.3, 1.7, 0.5 ],
+            [ 4.8, 3.4, 1.9, 0.2 ],
+            [ 5, 3, 1.6, 0.2 ],
+            [ 5, 3.4, 1.6, 0.4 ],
+            [ 5.2, 3.5, 1.5, 0.2 ],
+            [ 5.2, 3.4, 1.4, 0.2 ],
+            [ 4.7, 3.2, 1.6, 0.2 ],
+            [ 4.8, 3.1, 1.6, 0.2 ],
+            [ 5.4, 3.4, 1.5, 0.4 ],
+            [ 5.2, 4.1, 1.5, 0.1 ],
+            [ 5.5, 4.2, 1.4, 0.2 ],
+            [ 4.9, 3.1, 1.5, 0.2 ],
+            [ 5, 3.2, 1.2, 0.2 ],
+            [ 5.5, 3.5, 1.3, 0.2 ],
+            [ 4.9, 3.6, 1.4, 0.1 ],
+            [ 4.4, 3, 1.3, 0.2 ],
+            [ 5.1, 3.4, 1.5, 0.2 ],
+            [ 5, 3.5, 1.3, 0.3 ],
+            [ 4.5, 2.3, 1.3, 0.3 ],
+            [ 4.4, 3.2, 1.3, 0.2 ],
+            [ 5, 3.5, 1.6, 0.6 ],
+            [ 5.1, 3.8, 1.9, 0.4 ],
+            [ 4.8, 3, 1.4, 0.3 ],
+            [ 5.1, 3.8, 1.6, 0.2 ],
+            [ 4.6, 3.2, 1.4, 0.2 ],
+            [ 5.3, 3.7, 1.5, 0.2 ],
+            [ 5, 3.3, 1.4, 0.2 ] ]
+
+virginica = [ [ 6.3, 3.3, 6, 2.5 ],
+            [ 5.8, 2.7, 5.1, 1.9 ],
+            [ 7.1, 3, 5.9, 2.1 ],
+            [ 6.3, 2.9, 5.6, 1.8 ],
+            [ 6.5, 3, 5.8, 2.2 ],
+            [ 7.6, 3, 6.6, 2.1 ],
+            [ 4.9, 2.5, 4.5, 1.7 ],
+            [ 7.3, 2.9, 6.3, 1.8 ],
+            [ 6.7, 2.5, 5.8, 1.8 ],
+            [ 7.2, 3.6, 6.1, 2.5 ],
+            [ 6.5, 3.2, 5.1, 2 ],
+            [ 6.4, 2.7, 5.3, 1.9 ],
+            [ 6.8, 3, 5.5, 2.1 ],
+            [ 5.7, 2.5, 5, 2 ],
+            [ 5.8, 2.8, 5.1, 2.4 ],
+            [ 6.4, 3.2, 5.3, 2.3 ],
+            [ 6.5, 3, 5.5, 1.8 ],
+            [ 7.7, 3.8, 6.7, 2.2 ],
+            [ 7.7, 2.6, 6.9, 2.3 ],
+            [ 6, 2.2, 5, 1.5 ],
+            [ 6.9, 3.2, 5.7, 2.3 ],
+            [ 5.6, 2.8, 4.9, 2 ],
+            [ 7.7, 2.8, 6.7, 2 ],
+            [ 6.3, 2.7, 4.9, 1.8 ],
+            [ 6.7, 3.3, 5.7, 2.1 ],
+            [ 7.2, 3.2, 6, 1.8 ],
+            [ 6.2, 2.8, 4.8, 1.8 ],
+            [ 6.1, 3, 4.9, 1.8 ],
+            [ 6.4, 2.8, 5.6, 2.1 ],
+            [ 7.2, 3, 5.8, 1.6 ],
+            [ 7.4, 2.8, 6.1, 1.9 ],
+            [ 7.9, 3.8, 6.4, 2 ],
+            [ 6.4, 2.8, 5.6, 2.2 ],
+            [ 6.3, 2.8, 5.1, 1.5 ],
+            [ 6.1, 2.6, 5.6, 1.4 ],
+            [ 7.7, 3, 6.1, 2.3 ],
+            [ 6.3, 3.4, 5.6, 2.4 ],
+            [ 6.4, 3.1, 5.5, 1.8 ],
+            [ 6, 3, 4.8, 1.8 ],
+            [ 6.9, 3.1, 5.4, 2.1 ],
+            [ 6.7, 3.1, 5.6, 2.4 ],
+            [ 6.9, 3.1, 5.1, 2.3 ],
+            [ 5.8, 2.7, 5.1, 1.9 ],
+            [ 6.8, 3.2, 5.9, 2.3 ],
+            [ 6.7, 3.3, 5.7, 2.5 ],
+            [ 6.7, 3, 5.2, 2.3 ],
+            [ 6.3, 2.5, 5, 1.9 ],
+            [ 6.5, 3, 5.2, 2 ],
+            [ 6.2, 3.4, 5.4, 2.3 ],
+            [ 5.9, 3, 5.1, 1.8 ] ]
+
+def logit(x):
+    return np.log(x/(1-x))
+
+# autoencoder
+auto = NN(l=[4,3,2,3,4])
+
+train_setosa=setosa[0:40]
+train_virginica=virginica[0:40]
+
+test_setosa=setosa[40:]
+test_virginica=virginica[40:]
+
+for i in range(0,10000):
+    r1 = train_setosa[random.randint(0,len(train_setosa)-1)].copy()
+    r2 = train_virginica[random.randint(0,len(train_virginica)-1)].copy()
+    
+    for j in range(0,5):
+        auto.bp([r1],[[sigmoid(r) for r in r1]])
+        
+    for k in range(0,5):
+        auto.bp([r2],[[sigmoid(r) for r in r2]])
+
+mse = 0
+
+print("Setosa encoding:")
+for i in range(len(test_setosa)):
+    print(auto.feedForward(test_setosa[i],brk=True)[2][0:2])
+
 print("")
-o=m.feedForward([0.35,0.9],brk=True)
-print("Ouput: ", o)
-m.bp([[0.35,0.9]],[[0.5,0.5]])
-o=m.feedForward([0.35,0.9])
-print("New ouput: ", o)
-'''
+print("Virginica encoding:")
+for j in range(len(test_virginica)):
+    print(auto.feedForward(test_virginica[j],brk=True)[2][0:2])
+
+'''    
