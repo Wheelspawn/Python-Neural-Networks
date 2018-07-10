@@ -31,22 +31,22 @@ class MainWindow(Frame):
         leftButton = Button(self.parent, text="Feedforward", command=lambda: propagate(self, self.geometry.canvas, inputEntry.get())) # feedforward button
         leftButton.grid(row=1,column=0,pady=5)
         
-        backPropagation = Button(self.parent, text="Backpropagation", command=lambda: BackpropWindow(Tk(), self.n)) # button that loads weights from (an undecided extension) file
+        backPropagation = Button(self.parent, text="Backpropagation", command=lambda: BackpropWindow(Tk(), self.n)) # button that lets you set up backprop training
         backPropagation.grid(row=2,column=0,padx=5,pady=5)
         
-        load = Button(self.parent, text="Load weights from CSV", command=lambda: self.loadWeights()) # button that loads weights from (an undecided extension) file
+        load = Button(self.parent, text="Load weights from HDF", command=lambda: self.loadWeights()) # button that loads weights from HDF .h5 file
         load.grid(row=3,column=0,padx=5,pady=5)
         
-        export = Button(self.parent, text="Export weights to CSV", command=lambda: self.exportWeights()) # button that exports weights to (an undecided extension) file
+        export = Button(self.parent, text="Export weights to HDF", command=lambda: self.exportWeights()) # button that exports weights to HDF .h5 file
         export.grid(row=4,column=0,pady=5)
         
-        process = Button(self.parent, text="Process data and export to CSV", command=lambda: ProcessWindow(Tk(), self.n)) # button that exports weights to (an undecided extension) file
+        process = Button(self.parent, text="Process data and export to HDF", command=lambda: ProcessWindow(Tk(), self.n)) # button that exports weights to HDF .h5 file
         process.grid(row=5,column=0,padx=10,pady=5)
         
-        recurrencies = Button(self.parent, text="Recurrencies") # button that exports weights to (an undecided extension) file
+        recurrencies = Button(self.parent, text="Recurrencies")
         recurrencies.grid(row=6,column=0,pady=5)
         
-        ticTacToe = Button(self.parent, text="Play tic-tac-toe!") # button that exports weights to (an undecided extension) file
+        ticTacToe = Button(self.parent, text="Play tic-tac-toe!")
         ticTacToe.grid(row=7,column=0,pady=5)
         
         layerOptions=["","0","1","2","3","4","5","6","7","8","9","10","11","12"] # max number of neurons in a layer is 12
@@ -245,7 +245,7 @@ class WeightWindow(Frame):
             self.labels.append(Label(self.parent, text=(("Weight " + str(i)) if i != len(self.neuron)-1 else ("Weight " + str(i) + " (bias)"))))
             self.labels[i].grid(row=i,column=1,padx=15,pady=1)
         
-        leftButton = Button(self.parent, text="Update weights", command=self.updateWeights) # feedforward button
+        leftButton = Button(self.parent, text="Update weights", command=self.updateWeights)
         leftButton.grid(row=len(self.neuron),column=0,padx=15,pady=15)
         
         
@@ -266,10 +266,10 @@ class BackpropWindow(Frame):
     def initUI(self):
         titleTop = self.parent.title("Backpropagation")
     
-        uploadInputs = Button(self.parent, text="Upload CSV input pairs", command=lambda: self.loadInputs())
+        uploadInputs = Button(self.parent, text="Upload HDF input pairs", command=lambda: self.loadInputs())
         uploadInputs.grid(row=0,column=0,padx=15,pady=15)
         
-        uploadTargets = Button(self.parent, text="Upload CSV target pairs", command=lambda: self.loadTargets())
+        uploadTargets = Button(self.parent, text="Upload HDF target pairs", command=lambda: self.loadTargets())
         uploadTargets.grid(row=1,column=0,padx=15,pady=15)
         
         epochs = Entry(self.parent) # input values
@@ -279,11 +279,12 @@ class BackpropWindow(Frame):
         self.learnMode = IntVar()
         self.learnMode.set(1)
         
-        stochastic = Radiobutton(self.parent, text="Batch", variable=self.learnMode, value=1, command=lambda: self.learnMode.set(1))
-        stochastic.grid(row=0,column=1,padx=5,pady=5)
-        
-        batch = Radiobutton(self.parent, text="Stochastic", variable=self.learnMode, value=0, command=lambda: self.learnMode.set(0))
-        batch.grid(row=1,column=1,padx=5,pady=5)
+        batch = Radiobutton(self.parent, text="Batch", variable=self.learnMode, value=1, command=lambda: self.learnMode.set(1))
+        batch.grid(row=0,column=1,padx=5,pady=5)
+        batch.invoke()
+
+        stochastic = Radiobutton(self.parent, text="Stochastic", variable=self.learnMode, value=0, command=lambda: self.learnMode.set(0))
+        stochastic.grid(row=1,column=1,padx=5,pady=5)
         
         noiseButton = Checkbutton(self.parent, text="Input noise", command=lambda:self.inputNoise())
         noiseButton.grid(row=2,column=1,padx=5,pady=5)
@@ -305,6 +306,8 @@ class BackpropWindow(Frame):
         self.targets = vectorsToArray(g)
         
     def backProp(self, epochNum):
+
+        print(self.learnMode.get())
         
         if self.inputs != None and self.targets != None:
             if int(epochNum) > 0:
