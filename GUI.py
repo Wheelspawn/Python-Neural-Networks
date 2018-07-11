@@ -40,14 +40,14 @@ class MainWindow(Frame):
         export = Button(self.parent, text="Export weights to HDF", command=lambda: self.exportWeights()) # button that exports weights to HDF .h5 file
         export.grid(row=4,column=0,pady=5)
         
-        process = Button(self.parent, text="Process data and export to HDF", command=lambda: ProcessWindow(Tk(), self.n)) # button that exports weights to HDF .h5 file
+        process = Button(self.parent, text="Process data and export to CSV", command=lambda: ProcessWindow(Tk(), self.n)) # button that exports weights to HDF .h5 file
         process.grid(row=5,column=0,padx=10,pady=5)
         
-        recurrencies = Button(self.parent, text="Recurrencies")
-        recurrencies.grid(row=6,column=0,pady=5)
+        # recurrencies = Button(self.parent, text="Recurrencies")
+        # recurrencies.grid(row=6,column=0,pady=5)
         
-        ticTacToe = Button(self.parent, text="Play tic-tac-toe!")
-        ticTacToe.grid(row=7,column=0,pady=5)
+        # ticTacToe = Button(self.parent, text="Play tic-tac-toe!")
+        # ticTacToe.grid(row=7,column=0,pady=5)
         
         layerOptions=["","0","1","2","3","4","5","6","7","8","9","10","11","12"] # max number of neurons in a layer is 12
         
