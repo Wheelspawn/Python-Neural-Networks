@@ -1,5 +1,8 @@
 My own neural network implementation in Python. Does backpropagation. GUI support.
 
+Watch the demo here:
+https://www.youtube.com/watch?v=q_ldHO5RIDg
+
 About the current version:
 
 Initialize a neural network by calling:
@@ -46,12 +49,11 @@ The last feature is the GUI. In the console, just type GUI(). Most of it is self
 
 You can import and export weights. The CSV formatting for import and export is the same, so you can export your weights and import them again without any problem. If you are importing a set from hand, make sure you know what you are doing. The number of layers, number of nodes in each layer, and number of weights in each node must exactly match the current network topology.
 
-I originally had an evolutionary algorithm set up to train the weights, but that is now legacy code.
+I originally had an evolutionary algorithm set up to train the weights, but that is now legacy code (it didn't work very well).
 
 Up-and-coming additions:
  - GUI will get a tic-tac-toe window. Play tic-tac-toe against a neural network, game tree or another player.
  - Bug fixes, error handling.
- - Code is going to get optimized, documented, functions, get and set, methods get a consistent naming convention (e.g. everything gets capitalized so myFunc becomes MyFunc)
- - An executable file on sourceforge so you don't have to compile everything yourself.
- - A YouTube video for a run-through of the features.
+ - Code is going to get optimized, documented, functions, get and set, methods get a consistent naming convention (e.g. everything gets underscored so myfunc becomes my_func)
+ - Run the script without worrying about dependencies.
  - And that's it. No new features will be added. I will move onto writing a self-organizing map or a cognitive robotics project, but those will be different projects.
